@@ -179,10 +179,25 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
               <div style={{ marginBottom: '2rem' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={story.imageUrl}
+                  src={`/api/image?url=${encodeURIComponent(story.imageUrl)}`}
                   alt=""
                   style={{ width: '100%', maxHeight: '420px', objectFit: 'cover', display: 'block' }}
                 />
+              </div>
+            )}
+
+            {/* Full narrative — adequateAnalysis */}
+            {story.adequateAnalysis && (
+              <div style={{ marginBottom: '2rem' }}>
+                {story.adequateAnalysis.split('\n\n').map((para, i) => (
+                  <p key={i} style={{
+                    fontFamily: 'EB Garamond, serif',
+                    fontSize: '1.08rem',
+                    lineHeight: 1.85,
+                    color: 'var(--ink)',
+                    marginBottom: '1.2rem',
+                  }}>{para}</p>
+                ))}
               </div>
             )}
 

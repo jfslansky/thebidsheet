@@ -20,4 +20,6 @@ export interface Story {
   signals?: string[]
   clickedAt?: number
   imageUrl?: string
+  rssImageUrl?: string
+  adequateAnalysis?: string  // full 3-paragraph story written by Claude; adequateVoice is the short card take
 }

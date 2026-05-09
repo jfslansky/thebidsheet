@@ -126,36 +126,46 @@ export async function ingestFeeds(): Promise<number> {
 
   const rescored = await stories.values()
 
-  // Fix existing stories: resolve Google redirect URLs and replace bad Google-hosted images
+  // Fix existing stories: decode Google redirect URLs, promote RSS images for unimaged stories
   const googleHostRe = /google|gstatic|googleapis|ggpht/
-  // Fix existing stories: decode Google redirect URLs, replace bad Google-hosted images
+  const googlebotUA = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
   await Promise.allSettled(
     rescored
-      .filter(s => s.sourceUrl.includes('news.google.com') || googleHostRe.test(s.imageUrl ?? ''))
-      .slice(0, 25)
+      .filter(s => s.sourceUrl.includes('news.google.com') || (!s.imageUrl && s.rssImageUrl))
+      .slice(0, 30)
       .map(async s => {
         try {
-          // Try protobuf decode first (no HTTP needed)
           if (s.sourceUrl.includes('news.google.com')) {
             const decoded = decodeGoogleNewsUrl(s.sourceUrl)
             if (decoded !== s.sourceUrl) s.sourceUrl = decoded
           }
-          if (s.sourceUrl.includes('news.google.com')) return  // still unresolved — skip image
-          if (!googleHostRe.test(s.imageUrl ?? '')) { await stories.set(s.id, s); return }
-          // Fetch og:image to replace bad Google-hosted image
+          // Promote RSS image if no imageUrl yet
+          if (!s.imageUrl && s.rssImageUrl) s.imageUrl = s.rssImageUrl
+          await stories.set(s.id, s)
+        } catch { /* non-fatal */ }
+      })
+  )
+
+  // OG scrape existing high-scorers that still lack an image
+  await Promise.allSettled(
+    rescored
+      .filter(s => !s.imageUrl && (s.score ?? 0) >= 6 && !s.sourceUrl.includes('news.google.com'))
+      .slice(0, 10)
+      .map(async s => {
+        try {
           const res = await fetch(s.sourceUrl, {
-            signal: AbortSignal.timeout(6000),
-            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BidSheetBot/1.0; +https://thebidsheet.com)' },
+            signal: AbortSignal.timeout(4000),
+            headers: { 'User-Agent': googlebotUA },
             redirect: 'follow',
           })
           if (!res.ok) return
           const html = await res.text()
           const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
             ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
-            ?? html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
-            ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
-          s.imageUrl = m?.[1] ? (m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href) : undefined
-          await stories.set(s.id, s)
+          if (m?.[1]) {
+            s.imageUrl = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
+            await stories.set(s.id, s)
+          }
         } catch { /* non-fatal */ }
       })
   )
@@ -200,8 +210,7 @@ export async function ingestFeeds(): Promise<number> {
         const lowerTitle = cleanTitle.toLowerCase()
         const dynamicBoost = (lore.dynamicSignals ?? []).some(s => lowerTitle.includes(s.toLowerCase())) ? 2 : 0
         const rssImage = extractRSSImage(item)
-        const cleanRSSImage = rssImage && !googleHostRe.test(rssImage) ? rssImage : undefined
-        const imageBoost = cleanRSSImage ? 1 : 0
+        const imageBoost = rssImage ? 1 : 0
         const boost = sourceBoost + Math.min(signalBoost, 3) + dynamicBoost + imageBoost
         candidates.push({
           id: crypto.randomBytes(6).toString('hex'),
@@ -218,7 +227,7 @@ export async function ingestFeeds(): Promise<number> {
           hazingScore: scores.hazingScore + (scores.hazingScore > 0 ? boost : 0),
           viralScore: scores.viralScore + (scores.viralScore > 0 ? boost : 0),
           signals: scores.signals,
-          ...(cleanRSSImage ? { imageUrl: cleanRSSImage } : {}),
+          ...(rssImage ? { rssImageUrl: rssImage } : {}),
         })
         seen.add(resolvedLink)
       }
@@ -293,41 +302,34 @@ export async function ingestFeeds(): Promise<number> {
     }
   }
 
-  const browserUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-
-  // Step 2: Fetch og:image for stories that need one
+  // Step 2: OG scrape top high-scorers for best image quality
   await Promise.allSettled(
     fresh
-      .filter(s =>
-        (!s.imageUrl || googleHostRe.test(s.imageUrl)) &&
-        (s.score ?? 0) >= 1 &&
-        !s.sourceUrl.includes('news.google.com')  // skip any still-unresolved Google URLs
-      )
-      .slice(0, 100)
+      .filter(s => (s.score ?? 0) >= 5 && !s.sourceUrl.includes('news.google.com'))
+      .slice(0, 20)
       .map(async s => {
         try {
           const res = await fetch(s.sourceUrl, {
-            signal: AbortSignal.timeout(8000),
-            headers: {
-              'User-Agent': browserUA,
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-              'Accept-Language': 'en-US,en;q=0.5',
-            },
+            signal: AbortSignal.timeout(4000),
+            headers: { 'User-Agent': googlebotUA },
             redirect: 'follow',
           })
           if (!res.ok) return
           const html = await res.text()
           const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
             ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
-            ?? html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
-            ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
           if (m?.[1]) {
             const url = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
-            if (!googleHostRe.test(url)) s.imageUrl = url  // reject Google-hosted results
+            s.imageUrl = url
           }
         } catch { /* non-fatal */ }
       })
   )
+
+  // Promote RSS image for any story that didn't get an OG image
+  for (const s of fresh) {
+    if (!s.imageUrl && s.rssImageUrl) s.imageUrl = s.rssImageUrl
+  }
 
   await Promise.all(fresh.map(s => stories.set(s.id, s)))
 

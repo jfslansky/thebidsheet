@@ -176,6 +176,11 @@ export default async function Home() {
 
   const tickerContent = [...TICKER_ITEMS, ...TICKER_ITEMS].join('   ·   ')
 
+  // ── Image proxy — bypasses hotlink protection ─────────────────────────────
+  function px(url?: string) {
+    return url ? `/api/image?url=${encodeURIComponent(url)}` : undefined
+  }
+
   // ── Helpers ────────────────────────────────────────────────────────────────
   function SectionHeader({ kicker, title, variant }: { kicker: string; title: string; variant: string }) {
     return (
@@ -207,7 +212,7 @@ export default async function Home() {
         <div className="story-card-o-wrap">
           {s.imageUrl
             // eslint-disable-next-line @next/next/no-img-element
-            ? <img className="story-card-o-img" src={s.imageUrl} alt="" />
+            ? <img className="story-card-o-img" src={px(s.imageUrl)} alt="" />
             : <div className={`story-card-o-ph ${phClass}`} />
           }
           <div className="story-card-o-grad" />
@@ -227,7 +232,7 @@ export default async function Home() {
     return (
       <Link href={`/story/${s.id}`} className="story-card-h" style={{ textDecoration: 'none' }}>
         {s.imageUrl
-          ? <img className="story-card-h-img" src={s.imageUrl} alt="" /> // eslint-disable-line @next/next/no-img-element
+          ? <img className="story-card-h-img" src={px(s.imageUrl)} alt="" /> // eslint-disable-line @next/next/no-img-element
           : <div className={`story-card-h-placeholder ${placeholderClass ?? ''}`} />
         }
         <div className="story-card-h-body">
@@ -302,7 +307,7 @@ export default async function Home() {
           <Link href={`/story/${splash.id}`} className="hero-v2">
             {splash.imageUrl
               // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={splash.imageUrl} alt="" className="hero-v2-img" />
+              ? <img src={px(splash.imageUrl)} alt="" className="hero-v2-img" />
               : <div className="hero-v2-ph" />
             }
             <div className="hero-v2-grad" />
