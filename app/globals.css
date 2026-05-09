@@ -294,7 +294,49 @@ body {
   color: rgba(253,248,245,0.4);
 }
 
-/* ── Horizontal story card (image-left) ───────────────────────────────────── */
+/* ── Vertical story card (image-top, magazine grid) ──────────────────────── */
+.story-card-v {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.story-card-v:hover .story-headline { color: var(--pink); }
+
+.story-card-v-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 0.65rem;
+}
+
+.story-card-v-placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.65rem;
+  background: linear-gradient(135deg, var(--pink-faint) 0%, var(--bg-blush) 100%);
+}
+
+.story-card-v-placeholder-rush {
+  background: linear-gradient(135deg, var(--gold-faint) 0%, #fdf6e0 100%);
+}
+
+.story-card-v-placeholder-source {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 0.72rem;
+  color: var(--pink);
+  opacity: 0.55;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+/* ── Horizontal story card (image-left) — kept for sidebar/list use ──────── */
 .story-card-h {
   display: flex;
   gap: 0.85rem;
@@ -309,23 +351,23 @@ body {
 
 .story-card-h-img {
   flex-shrink: 0;
-  width: 130px;
-  height: 100px;
+  width: 110px;
+  height: 85px;
   object-fit: cover;
 }
 
 .story-card-h-placeholder {
   flex-shrink: 0;
-  width: 130px;
-  height: 100px;
-  background: var(--pink-faint);
+  width: 110px;
+  height: 85px;
+  background: linear-gradient(135deg, var(--pink-faint) 0%, var(--bg-blush) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .story-card-h-placeholder-rush {
-  background: var(--gold-faint);
+  background: linear-gradient(135deg, var(--gold-faint) 0%, #fdf6e0 100%);
 }
 
 .story-card-h-body { flex: 1; min-width: 0; }

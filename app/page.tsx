@@ -191,7 +191,34 @@ export default async function Home() {
     return (
       <Link href={`/story/${s.id}`} className="story-link" style={{ textDecoration: 'none', color: 'inherit' }}>
         <div className="story-headline">{s.headline}</div>
-        {s.adequateVoice && <div className="story-voice"><RushVoice text={s.adequateVoice} /></div>}
+        {s.adequateVoice && (
+          <div className="story-voice"><RushVoice text={s.adequateVoice} /></div>
+        )}
+        <div className="source-tag">{s.source}</div>
+      </Link>
+    )
+  }
+
+  // Vertical card — big image top, text below (magazine grid style)
+  function StoryVertical({ s, rushVariant }: { s: Story; rushVariant?: boolean }) {
+    const ph = rushVariant ? 'story-card-v-placeholder-rush' : ''
+    return (
+      <Link href={`/story/${s.id}`} className="story-card-v" style={{ textDecoration: 'none' }}>
+        {s.imageUrl
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img className="story-card-v-img" src={s.imageUrl} alt="" />
+          : (
+            <div className={`story-card-v-placeholder ${ph}`}>
+              <span className="story-card-v-placeholder-source">{s.source}</span>
+            </div>
+          )
+        }
+        <div className="story-headline" style={{ fontSize: '0.97rem', marginBottom: '0.25rem' }}>{s.headline}</div>
+        {s.adequateVoice && (
+          <div className="story-voice" style={{ fontSize: '0.84rem', marginBottom: '0.2rem' }}>
+            <RushVoice text={s.adequateVoice} />
+          </div>
+        )}
         <div className="source-tag">{s.source}</div>
       </Link>
     )
@@ -206,20 +233,20 @@ export default async function Home() {
         }
         <div className="story-card-h-body">
           <div className="story-headline" style={{ fontSize: '0.92rem' }}>{s.headline}</div>
-          {s.adequateVoice && <div className="story-voice" style={{ fontSize: '0.82rem' }}><RushVoice text={s.adequateVoice} /></div>}
+          {s.adequateVoice && (
+            <div className="story-voice" style={{ fontSize: '0.82rem' }}>
+              <RushVoice text={s.adequateVoice} />
+            </div>
+          )}
           <div className="source-tag">{s.source}</div>
         </div>
       </Link>
     )
   }
 
-  const fashionLeft  = fashionPool.filter((_, i) => i % 2 === 0)
-  const fashionRight = fashionPool.filter((_, i) => i % 2 === 1)
-  const rushLeft     = rushPool.filter((_, i) => i % 2 === 0)
-  const rushRight    = rushPool.filter((_, i) => i % 2 === 1)
-  const teaCols      = [teaPool.filter((_, i) => i % 3 === 0), teaPool.filter((_, i) => i % 3 === 1), teaPool.filter((_, i) => i % 3 === 2)]
-  const localLeft    = localPool.filter((_, i) => i % 2 === 0)
-  const localRight   = localPool.filter((_, i) => i % 2 === 1)
+  const teaCols   = [teaPool.filter((_, i) => i % 3 === 0), teaPool.filter((_, i) => i % 3 === 1), teaPool.filter((_, i) => i % 3 === 2)]
+  const localLeft = localPool.filter((_, i) => i % 2 === 0)
+  const localRight = localPool.filter((_, i) => i % 2 === 1)
 
   return (
     <>
@@ -321,38 +348,38 @@ export default async function Home() {
             {/* Main content */}
             <div>
 
-              {/* ── The Look — Fashion ──────────────────────────────────── */}
+              {/* ── The Look — Fashion (3-col image grid) ───────────────── */}
               {fashionPool.length > 0 && (
                 <div className="section-fashion-bg" style={{ marginBottom: '2rem' }}>
                   <SectionHeader kicker="Fashion & Style" title="The Look" variant="fashion" />
-                  <div className="story-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 2rem' }}>
-                    <div className="col-divider">
-                      {fashionLeft.map(s => <StoryHorizontal key={s.id} s={s} />)}
-                    </div>
-                    <div>
-                      {fashionRight.map(s => <StoryHorizontal key={s.id} s={s} />)}
-                    </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }}>
+                    {fashionPool.slice(0, 6).map(s => <StoryVertical key={s.id} s={s} />)}
                   </div>
+                  {fashionPool.length > 6 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginTop: '1.25rem', borderTop: '1px solid var(--rule)', paddingTop: '1.25rem' }}>
+                      {fashionPool.slice(6, 12).map(s => <StoryVertical key={s.id} s={s} />)}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* In-content responsive — between Fashion and Bid Season */}
+              {/* In-content responsive ad */}
               <div style={{ margin: '1.5rem 0' }}>
                 <AdUnit slot="responsive" />
               </div>
 
-              {/* ── Bid Season — Rush & Recruitment ─────────────────────── */}
+              {/* ── Bid Season — Rush & Recruitment (3-col grid) ─────────── */}
               {rushPool.length > 0 && (
                 <div style={{ marginBottom: '2rem' }}>
                   <SectionHeader kicker="Recruitment & Rush Season" title="Bid Season" variant="rush" />
-                  <div className="story-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 2rem' }}>
-                    <div className="col-divider">
-                      {rushLeft.map(s => <StoryHorizontal key={s.id} s={s} placeholderClass="story-card-h-placeholder-rush" />)}
-                    </div>
-                    <div>
-                      {rushRight.map(s => <StoryHorizontal key={s.id} s={s} placeholderClass="story-card-h-placeholder-rush" />)}
-                    </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }}>
+                    {rushPool.slice(0, 6).map(s => <StoryVertical key={s.id} s={s} rushVariant />)}
                   </div>
+                  {rushPool.length > 6 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginTop: '1.25rem', borderTop: '1px solid var(--rule)', paddingTop: '1.25rem' }}>
+                      {rushPool.slice(6, 12).map(s => <StoryVertical key={s.id} s={s} rushVariant />)}
+                    </div>
+                  )}
                 </div>
               )}
 
