@@ -2,7 +2,7 @@ import { ingestFeeds } from '@/lib/ingest'
 import { stories } from '@/lib/store'
 import { NextRequest } from 'next/server'
 
-export const maxDuration = 60
+export const maxDuration = 300
 
 export async function GET(request: NextRequest) {
   const secret = request.nextUrl.searchParams.get('secret')

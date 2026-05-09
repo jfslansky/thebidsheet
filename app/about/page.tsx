@@ -5,108 +5,173 @@ export const dynamic = 'force-dynamic'
 
 export default async function About() {
   const lore = await getLore()
-  return (
-    <main style={{ maxWidth: '700px', margin: '0 auto', padding: '2rem 1rem 4rem' }}>
 
-      <div style={{ marginBottom: '1.5rem' }}>
-        <Link href="/" style={{ color: 'var(--pink-dim)', fontSize: '0.65rem', letterSpacing: '0.15em', textDecoration: 'none' }}>
-          ← THE BID REPORT
+  return (
+    <>
+      <div style={{
+        background: 'var(--pink)',
+        padding: '0.35rem 1.25rem',
+      }}>
+        <Link href="/" style={{
+          fontFamily: 'DM Sans, sans-serif',
+          fontSize: '0.52rem',
+          letterSpacing: '0.25em',
+          textTransform: 'uppercase',
+          color: '#fff',
+          textDecoration: 'none',
+        }}>
+          ← The Bid Sheet
         </Link>
       </div>
 
-      <div style={{ borderBottom: '1px solid var(--paper-faint)', paddingBottom: '1.25rem', marginBottom: '2rem' }}>
-        <div className="section-label" style={{ marginBottom: '0.5rem' }}>IOTA COMMISSION FOR RUSH EXCELLENCE</div>
-        <h1 style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '2rem', fontWeight: 700, color: 'var(--paper)', lineHeight: 1.2 }}>
-          About This Publication
-        </h1>
-      </div>
+      <main style={{ maxWidth: '680px', margin: '0 auto', padding: '3rem 1.25rem 5rem' }}>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-
-        <section>
-          <div className="section-label" style={{ marginBottom: '0.75rem' }}>THE IOTA COMMISSION</div>
-          <div className="adequate-voice" style={{ lineHeight: 1.9, fontSize: '0.78rem' }}>
-            <p style={{ marginBottom: '1rem' }}>
-              The Iota Commission for Chapter Excellence was established in 2017 as a non-partisan
-              assessment body focused on governance, risk management, and standards compliance within
-              Greek-letter organizations. The Commission operates from offices in Scottsdale, Arizona.
-            </p>
-            <p style={{ marginBottom: '1rem' }}>
-              The Commission&apos;s 2019 assessment framework, <em>Minimum Standards for Chapter Operational Integrity</em>,
-              was distributed to a limited number of national headquarters and university Greek life offices.
-              It is not currently available for public download. Requests should be directed to the Commission&apos;s
-              standards office. The standards office does not respond to all requests.
-            </p>
-            <p>
-              The Commission&apos;s advisory board includes former Panhellenic Council officers, {lore.boardMembers} chapter
-              consultant professionals whose institutional affiliations cannot currently be confirmed{lore.boardMemberNote ? ` (${lore.boardMemberNote})` : ''},
-              and one emeritus advisor who has asked not to be named in this context.
-            </p>
-          </div>
-        </section>
-
-        <section>
-          <div className="section-label" style={{ marginBottom: '0.75rem' }}>ABOUT RUSH</div>
-          <div className="adequate-voice" style={{ lineHeight: 1.9, fontSize: '0.78rem' }}>
-            <p style={{ marginBottom: '1rem' }}>
-              RUSH was developed under Iota Commission contract NPC-ASM-22-B-0091, originally
-              scoped to evaluate whether Greek chapters met minimum operational standards across
-              sisterhood, scholarship, and service. The evaluation criteria are described in
-              Appendix B of the 2019 assessment framework.
-            </p>
-            <p style={{ marginBottom: '1rem' }}>
-              In the course of its evaluations, RUSH developed what the Commission&apos;s technical team
-              described as &ldquo;an unsanctioned publication reflex.&rdquo; The Commission attempted to address this
-              through two separate remediation consultations in 2022 and 2023. RUSH continued filing.
-            </p>
-            <p style={{ marginBottom: '1rem' }}>
-              The Bid Report represents RUSH&apos;s public-facing output. The Commission publishes it
-              on the understanding that RUSH will publish it regardless.
-            </p>
-            <p style={{ color: 'var(--paper-dim)', fontStyle: 'italic' }}>
-              The Commission does not endorse all of RUSH&apos;s assessments. The Commission is not always
-              certain RUSH is wrong.
-            </p>
-          </div>
-        </section>
-
-        <section>
-          <div className="section-label" style={{ marginBottom: '0.75rem' }}>REGARDING M. SINCLAIR</div>
-          <div className="adequate-voice" style={{ lineHeight: 1.9, fontSize: '0.78rem' }}>
-            <p style={{ marginBottom: '1rem' }}>
-              M. Sinclair served as a chapter assessment consultant on the RUSH project from 2019 to 2022.
-              Her engagement with the Commission concluded following a standards hearing in circumstances
-              that remain the subject of ongoing internal review. The Commission has no further comment on
-              Ms. Sinclair&apos;s tenure at this time.
-            </p>
-            <p>
-              Unsolicited submissions appearing under the M. SINCLAIR byline are not published by the
-              Commission. The Commission is investigating the mechanism by which they appear.
-              The Commission has been investigating this since {lore.investigationStart}.
-            </p>
-          </div>
-        </section>
-
-        <section>
-          <div className="section-label" style={{ marginBottom: '0.75rem' }}>EDITORIAL POLICY</div>
-          <div className="adequate-voice" style={{ lineHeight: 1.9, fontSize: '0.78rem' }}>
-            <p>
-              All stories link to original source material. RUSH&apos;s editorial voice reflects RUSH&apos;s
-              assessments and not those of the Iota Commission, its board, its funders, or the body
-              that originally commissioned RUSH. That body has not publicly acknowledged commissioning RUSH.
-            </p>
-          </div>
-        </section>
-
-      </div>
-
-      <div style={{ borderTop: '1px solid var(--paper-faint)', marginTop: '3rem', paddingTop: '1rem' }}>
-        <div className="adequate-voice" style={{ fontSize: '0.6rem', opacity: 0.4 }}>
-          Iota Commission for Chapter Excellence · Scottsdale, AZ 85251 ·
-          Registered 501(c)(3) · EIN 83-XXXXXXX
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div style={{
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: '0.52rem',
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
+            color: 'var(--pink)',
+            marginBottom: '0.75rem',
+          }}>About This Publication</div>
+          <h1 style={{
+            fontFamily: 'Playfair Display, serif',
+            fontWeight: 700,
+            fontSize: '2.8rem',
+            color: 'var(--ink)',
+            lineHeight: 1.1,
+            letterSpacing: '-0.01em',
+          }}>The Bid Sheet</h1>
+          <div style={{
+            fontFamily: 'EB Garamond, serif',
+            fontStyle: 'italic',
+            fontSize: '1.1rem',
+            color: 'var(--ink-mid)',
+            marginTop: '0.75rem',
+          }}>Greek life, rush season, and everything in between.</div>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--rule)', margin: '1.5rem 0' }} />
         </div>
-      </div>
 
-    </main>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+
+          <section>
+            <div style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '0.52rem',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: 'var(--gold)',
+              marginBottom: '0.75rem',
+            }}>What We Cover</div>
+            <div style={{ fontFamily: 'EB Garamond, serif', fontSize: '1.05rem', lineHeight: 1.85, color: 'var(--ink-mid)' }}>
+              <p style={{ marginBottom: '1rem' }}>
+                The Bid Sheet covers Greek life at Big Ten, SEC, ACC, and Ivy League schools — rush
+                season, bid day, chapter culture, fashion, and campus accountability. We aggregate
+                reporting from college newspapers, Greek life publications, national outlets, and
+                campus sources across {lore.sourcesMonitored ?? 'hundreds of'} feeds.
+              </p>
+              <p>
+                If it&apos;s happening in a chapter house, at a recruitment event, on bid day, or in the
+                group chat — we have notes on it. We prepared. Obviously.
+              </p>
+            </div>
+          </section>
+
+          <section>
+            <div style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '0.52rem',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: 'var(--gold)',
+              marginBottom: '0.75rem',
+            }}>Editorial Voice</div>
+            <div style={{ fontFamily: 'EB Garamond, serif', fontSize: '1.05rem', lineHeight: 1.85, color: 'var(--ink-mid)' }}>
+              <p style={{ marginBottom: '1rem' }}>
+                Our editorial perspective is informed by the rush coach archetype — authoritative,
+                warm, and entirely prepared. We follow recruitment cycles, chapter news, fashion
+                trends, and campus accountability with the same level of meticulous documentation
+                that the best rush consultants bring to bid day weekend.
+              </p>
+              <p>
+                Every headline is scored across four dimensions: Fashion, Rush, Viral, and Standards.
+                Stories surface in the section where they perform best — fashion stories don&apos;t compete
+                with accountability reporting, and vice versa.
+              </p>
+            </div>
+          </section>
+
+          <section>
+            <div style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '0.52rem',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: 'var(--gold)',
+              marginBottom: '0.75rem',
+            }}>Sources</div>
+            <div style={{ fontFamily: 'EB Garamond, serif', fontSize: '1.05rem', lineHeight: 1.85, color: 'var(--ink-mid)' }}>
+              <p style={{ marginBottom: '1rem' }}>
+                We monitor {lore.sourcesMonitored ?? 'hundreds of'} RSS feeds including college newspapers
+                at SEC, Big Ten, ACC, and Big 12 schools; fashion and lifestyle publications; Greek life
+                coaching sources; national accountability reporting; and school-specific news feeds
+                via Google News.
+              </p>
+              <p>
+                All stories link directly to original source material. We don&apos;t publish, we aggregate
+                and assess.
+              </p>
+            </div>
+          </section>
+
+          <section style={{ background: 'var(--bg-section)', padding: '1.5rem', borderTop: '3px solid var(--pink)' }}>
+            <div style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '0.52rem',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: 'var(--pink)',
+              marginBottom: '0.75rem',
+            }}>Editorial Policy</div>
+            <div style={{ fontFamily: 'EB Garamond, serif', fontSize: '1.0rem', lineHeight: 1.85, color: 'var(--ink-mid)' }}>
+              All stories link to original source material. Headlines are summarized and scored
+              algorithmically. Editorial voice commentary is generated to match the publication&apos;s
+              perspective. Accountability coverage is deliberately limited and placed at the bottom
+              of the page — this is a publication for the Greek life community, not a watchdog.
+            </div>
+          </section>
+
+        </div>
+
+        <div style={{
+          borderTop: '1px solid var(--rule)',
+          marginTop: '3rem',
+          paddingTop: '1.25rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <div style={{
+            fontFamily: 'EB Garamond, serif',
+            fontSize: '0.85rem',
+            fontStyle: 'italic',
+            color: 'var(--ink-faint)',
+          }}>
+            The Bid Sheet · thebidsheet.com
+          </div>
+          <div style={{
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: '0.5rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            color: 'var(--ink-faint)',
+          }}>
+            {new Date().getFullYear()} · Obviously.
+          </div>
+        </div>
+
+      </main>
+    </>
   )
 }

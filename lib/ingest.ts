@@ -145,7 +145,7 @@ export async function ingestFeeds(): Promise<number> {
           // Fetch og:image to replace bad Google-hosted image
           const res = await fetch(s.sourceUrl, {
             signal: AbortSignal.timeout(6000),
-            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BidReportBot/1.0; +https://bidreport.com)' },
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BidSheetBot/1.0; +https://thebidsheet.com)' },
             redirect: 'follow',
           })
           if (!res.ok) return

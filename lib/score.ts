@@ -38,9 +38,6 @@ export const FEEDS: Feed[] = [
   { url: 'https://www.campussafetymagazine.com/feed/', source: 'Campus Safety', topicOnly: false, minScore: 1, perFeed: 5 },
 
   // ── COLLEGE NEWSPAPERS ───────────────────────────────────────────────────
-  // Crimson White (Alabama) — has sorority tag feeds with images
-  { url: 'https://thecrimsonwhite.com/tag/sorority/feed/', source: 'Crimson White', topicOnly: true, minScore: 1, perFeed: 8 },
-  { url: 'https://thecrimsonwhite.com/tag/greek-life/feed/', source: 'Crimson White', topicOnly: true, minScore: 1, perFeed: 6 },
   { url: 'https://thecrimsonwhite.com/feed/', source: 'Crimson White', topicOnly: false, minScore: 1, perFeed: 5 },
   // Active, returning content
   { url: 'https://thedmonline.com/feed/', source: 'Daily Mississippian', topicOnly: false, minScore: 1 },
