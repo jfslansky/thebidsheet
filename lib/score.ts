@@ -1,7 +1,7 @@
 // Shared scoring logic — single source of truth for ingest.ts and scripts/dry-run.ts
 
-export const MAX_STORIES = 80
-export const PER_FEED = 5
+export const MAX_STORIES = 200
+export const PER_FEED = 10
 
 export type Feed = { url: string; source: string; topicOnly: boolean; minScore?: number; perFeed?: number }
 

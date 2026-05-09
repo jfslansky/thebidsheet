@@ -75,24 +75,24 @@ body {
 /* ── Masthead ─────────────────────────────────────────────────────────────── */
 .masthead-title {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(3rem, 7vw, 5.5rem);
+  font-size: clamp(3.5rem, 9vw, 7rem);
   font-weight: 900;
   font-style: italic;
-  letter-spacing: -0.02em;
-  line-height: 1;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
   color: var(--ink);
 }
 
 .masthead-rule-top {
   border: none;
-  border-top: 3px solid var(--ink);
-  margin: 0 0 0.2rem;
+  border-top: 4px solid var(--ink);
+  margin: 0 0 0.15rem;
 }
 
 .masthead-rule {
   border: none;
-  border-top: 1px solid var(--rule-strong);
-  margin: 0.4rem 0;
+  border-top: 1px solid var(--ink);
+  margin: 0.35rem 0;
 }
 
 .masthead-rule-thin {
@@ -103,56 +103,59 @@ body {
 
 .masthead-sub {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 400;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--ink-mid);
 }
 
 /* ── Section headers ──────────────────────────────────────────────────────── */
 .section-kicker {
+  display: inline-block;
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   font-weight: 500;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  margin-bottom: 0.3rem;
+  padding: 0.2rem 0.65rem;
+  margin-bottom: 0.55rem;
+  border-radius: 0;
 }
 
 .section-title {
   font-family: 'Playfair Display', serif;
   font-weight: 900;
   font-style: italic;
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1;
+  font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+  line-height: 0.95;
   letter-spacing: -0.02em;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
 }
 
 .section-rule {
-  height: 2px;
+  height: 3px;
   border: none;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.4rem;
 }
 
 /* Fashion */
-.sh-fashion .section-kicker { color: var(--pink); }
+.sh-fashion .section-kicker { color: #fff; background: var(--pink); }
 .sh-fashion .section-title  { color: var(--ink); }
 .sh-fashion .section-rule   { background: var(--pink); }
 
 /* Rush */
-.sh-rush .section-kicker { color: var(--gold); }
+.sh-rush .section-kicker { color: #fff; background: var(--gold); }
 .sh-rush .section-title  { color: var(--ink); }
-.sh-rush .section-rule   { background: var(--gold-light); }
+.sh-rush .section-rule   { background: var(--gold); }
 
 /* Light / Tea */
-.sh-light .section-kicker { color: var(--pink); }
+.sh-light .section-kicker { color: var(--pink); background: var(--pink-faint); }
 .sh-light .section-title  { color: var(--ink); }
 .sh-light .section-rule   { background: var(--rule-strong); }
 
 /* Campus */
-.sh-campus .section-kicker { color: var(--ink-mid); }
+.sh-campus .section-kicker { color: var(--ink-mid); background: var(--bg-section); }
 .sh-campus .section-title  { color: var(--ink); }
 .sh-campus .section-rule   { background: var(--rule-strong); }
 
@@ -476,9 +479,9 @@ body {
 /* ── Section wrap — blush tint for fashion ────────────────────────────────── */
 .section-fashion-bg {
   background: var(--bg-blush);
-  padding: 1.25rem 1.5rem 1rem;
-  margin: 0 -1.5rem;
-  border-left: 3px solid var(--pink);
+  padding: 1.5rem 1.75rem 1.25rem;
+  margin: 0 -1.75rem;
+  border-left: 4px solid var(--pink);
 }
 
 /* ── Coaching card (sidebar) ──────────────────────────────────────────────── */

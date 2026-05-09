@@ -1,37 +1,38 @@
 import Link from 'next/link'
 import { stories } from '@/lib/store'
-import { getLore } from '@/lib/lore'
 import { RushVoice } from '@/components/RushVoice'
 import { AdUnit } from '@/components/AdUnit'
 import type { Story } from '@/lib/types'
 import {
-  FASHION_SIGNALS, RUSH_SIGNALS,
+  FASHION_SIGNALS, RUSH_SIGNALS, FEEDS,
   LIFESTYLE_SOURCES, FASHION_SOURCES, ACCOUNTABILITY_SOURCES,
   COACHING_SOURCES, LOCAL_SOURCES, SORORITY_TERMS,
 } from '@/lib/score'
 
 export const dynamic = 'force-dynamic'
 
-// ── Ticker copy — Rush voice, school energy ────────────────────────────────
+// ── Ticker — sorority girl energy, not bureaucrat ──────────────────────────
 const TICKER_ITEMS = [
-  'Bama Rush is documented · I have every year since 2019 · I prepared',
-  'Bid day outfits are a field of study · I am in this field · obviously',
-  'Recruitment week is my Super Bowl · I have notes from the previous four',
-  'The chapter called it isolated · I have the prior three incidents',
-  'I read every rush guide published this season · obviously · they were fine',
-  'OmegaFi has not responded to my request for membership data · I will follow up',
-  'Standards board convened last Tuesday · I reviewed the agenda beforehand',
-  'Legacy bids at SEC schools: documented, analyzed, ready',
-  'Greek week philanthropy totals are in · I had the estimate ready in March',
-  'The nationals newsletter went out · I read it before it was sent · long story',
-  'Bid Day 2026 is coming · I prepared in August · as I always do',
-  'Rush coach season has begun · I have watched every available TikTok · obviously',
-  'Panhellenic meeting minutes from last semester: not yet public · I am patient',
-  'I have thoughts about this recruitment cycle · they are warm thoughts',
+  'BamaRush 2026 · I have notes from every year since 2019 · obviously',
+  'Delta Delta Delta can I help ya help ya help ya · yes actually I can',
+  'Bid day is the happiest day of the year · fight me on this',
+  'Rush outfit formula: linen set + white sneakers + confidence · done',
+  'The clean girl aesthetic was invented by a Pi Phi · probably · it tracks',
+  'Chapter rankings just dropped · my predictions were correct · as expected',
+  'Sorority TikTok is basically a documentary series at this point · I watch all of them',
+  'Big little reveal season is the purest chaos on earth · love to see it',
+  'OPI Bubble Bath is still the official nail color of rush · tradition means something',
+  'Panhellenic drama is always more complicated than you think · I have the full timeline',
+  'Philanthropy season incoming · outfits planned · check',
+  'The group chat after bid day is the most chaotic place on the internet',
+  'Formal recruitment week is basically the Olympics for your wardrobe',
+  'Greek week > regular week · I stand by this · always have',
+  'New rush guide dropped · I had already read the draft · obviously',
+  'Sisterhood > everything · this is not up for debate',
 ]
 
 export default async function Home() {
-  const [allStories, lore] = await Promise.all([stories.values(), getLore()])
+  const allStories = await stories.values()
 
   // ── Age-decay display score ────────────────────────────────────────────────
   function displayScore(s: Story, categoryScore?: number): number {
@@ -43,9 +44,16 @@ export default async function Home() {
     return base
   }
 
-  allStories.sort((a, b) => displayScore(b) - displayScore(a))
+  allStories.sort((a, b) => (b.score ?? 1) - (a.score ?? 1))
 
   // ── Category classifiers ───────────────────────────────────────────────────
+  const isFraternityOnly = (s: Story) => {
+    const text = `${s.headline} ${s.originalHeadline ?? ''}`.toLowerCase()
+    return (text.includes('fraternity') || text.includes('frat ')) &&
+      !text.includes('sorority') && !text.includes('panhellenic') &&
+      !text.includes('greek life') && !text.includes('hazing')
+  }
+
   const isCoachingStory = (s: Story) => COACHING_SOURCES.has(s.source)
 
   const isAccountabilityStory = (s: Story) => {
@@ -87,54 +95,68 @@ export default async function Home() {
     return DRAMA.some(k => text.includes(k)) || SORORITY_TERMS.some(t => text.includes(t))
   }
 
-  // ── Splash — never accountability, never coaching ──────────────────────────
-  const splash = allStories.find(s => (isFashionStory(s) || isRushStory(s) || isTeaStory(s)) && s.imageUrl)
-    ?? allStories.find(s => (isFashionStory(s) || isRushStory(s) || isTeaStory(s)))
-    ?? allStories.find(s => !isAccountabilityStory(s) && s.imageUrl)
+  // ── Splash — sorority first, never fraternity-only, never accountability ───
+  const isSplashEligible = (s: Story) =>
+    !isAccountabilityStory(s) && !isCoachingStory(s) && !isFraternityOnly(s)
+
+  const splash = allStories.find(s => isSplashEligible(s) && (isFashionStory(s) || isRushStory(s)) && s.imageUrl)
+    ?? allStories.find(s => isSplashEligible(s) && s.imageUrl)
+    ?? allStories.find(s => isSplashEligible(s) && (isFashionStory(s) || isRushStory(s) || isTeaStory(s)))
+    ?? allStories.find(s => isSplashEligible(s))
     ?? allStories[0]
 
-  // ── Pools ──────────────────────────────────────────────────────────────────
-  const pool = allStories.filter(s => s.id !== splash?.id && displayScore(s) >= 1)
+  // ── Pools — filter by score not display-score so new stories always show ───
+  const pool = allStories.filter(s => s.id !== splash?.id && (s.score ?? 1) >= 1)
 
-  // Source diversity cap: max 4 per source across all main sections
+  // Source diversity cap: max 6 per source across all main sections
   const sourceCounts: Record<string, number> = {}
   const diverse: Story[] = []
   for (const s of pool) {
     if (isCoachingStory(s) || isAccountabilityStory(s)) continue
-    if ((sourceCounts[s.source] ?? 0) >= 4) continue
+    if (isFraternityOnly(s)) continue
+    if ((sourceCounts[s.source] ?? 0) >= 6) continue
     diverse.push(s)
     sourceCounts[s.source] = (sourceCounts[s.source] ?? 0) + 1
   }
 
-  // Each section sorted by its own category score where available
+  // Each section sorted by its own category score
   const fashionPool = diverse
     .filter(isFashionStory)
-    .sort((a, b) => displayScore(b, b.fashionScore) - displayScore(a, a.fashionScore))
-    .slice(0, 8)
+    .sort((a, b) => (b.fashionScore ?? b.score ?? 0) - (a.fashionScore ?? a.score ?? 0))
+    .slice(0, 14)
 
   const rushPool = diverse
     .filter(isRushStory)
-    .sort((a, b) => displayScore(b, b.rushScore) - displayScore(a, a.rushScore))
-    .slice(0, 8)
+    .sort((a, b) => (b.rushScore ?? b.score ?? 0) - (a.rushScore ?? a.score ?? 0))
+    .slice(0, 14)
 
-  const teaPool = diverse.filter(isTeaStory).slice(0, 9)
-  const localPool = diverse.filter(isLocalStory).slice(0, 6)
+  const teaPool = diverse.filter(isTeaStory).slice(0, 15)
 
-  // Coaching sidebar (no cap — these are always on-topic)
-  const coachingPool = pool
-    .filter(isCoachingStory)
-    .slice(0, 5)
+  // Campus: anything not already categorized — catches general Greek life content
+  const categorized = new Set([
+    ...fashionPool.map(s => s.id),
+    ...rushPool.map(s => s.id),
+    ...teaPool.map(s => s.id),
+  ])
+  const campusPool = diverse
+    .filter(s => !categorized.has(s.id))
+    .slice(0, 10)
 
-  // Accountability sidebar — hard cap 3, sorted by hazingScore
+  const localPool = diverse.filter(isLocalStory).filter(s => !categorized.has(s.id)).slice(0, 6)
+
+  // Coaching sidebar
+  const coachingPool = pool.filter(isCoachingStory).slice(0, 5)
+
+  // Accountability sidebar — hard cap 3
   const accountabilityPool = allStories
     .filter(isAccountabilityStory)
-    .sort((a, b) => displayScore(b, b.hazingScore) - displayScore(a, a.hazingScore))
+    .sort((a, b) => (b.hazingScore ?? 0) - (a.hazingScore ?? 0))
     .slice(0, 3)
 
   // Main accountability section at bottom — next 4 after sidebar
   const accountabilityMain = allStories
     .filter(isAccountabilityStory)
-    .sort((a, b) => displayScore(b, b.hazingScore) - displayScore(a, a.hazingScore))
+    .sort((a, b) => (b.hazingScore ?? 0) - (a.hazingScore ?? 0))
     .slice(3, 7)
 
   // ── School spotlight — rotates daily ──────────────────────────────────────
@@ -145,6 +167,8 @@ export default async function Home() {
     (`${s.headline} ${s.source}`.toLowerCase().includes(spotlightSchool.toLowerCase())) &&
     !isAccountabilityStory(s)
   ).slice(0, 4)
+
+  const sourceCount = FEEDS.length
 
   const dateStr = new Date().toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -194,6 +218,8 @@ export default async function Home() {
   const rushLeft     = rushPool.filter((_, i) => i % 2 === 0)
   const rushRight    = rushPool.filter((_, i) => i % 2 === 1)
   const teaCols      = [teaPool.filter((_, i) => i % 3 === 0), teaPool.filter((_, i) => i % 3 === 1), teaPool.filter((_, i) => i % 3 === 2)]
+  const localLeft    = localPool.filter((_, i) => i % 2 === 0)
+  const localRight   = localPool.filter((_, i) => i % 2 === 1)
 
   return (
     <>
@@ -219,7 +245,7 @@ export default async function Home() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.4rem', paddingBottom: '0.6rem' }}>
             <div className="masthead-sub">{dateStr}</div>
             <div className="masthead-sub" style={{ opacity: 0.5, letterSpacing: '0.15em' }}>
-              {lore.sourcesMonitored} sources · {allStories.length} findings
+              {sourceCount} sources · {allStories.length} findings
             </div>
             <div className="masthead-sub">
               <Link href="/about" style={{ color: 'inherit', textDecoration: 'none' }}>About</Link>
@@ -238,7 +264,7 @@ export default async function Home() {
         {/* Status bar */}
         <div className="status-bar">
           <span><span className="status-dot" />I&apos;m on it</span>
-          <span>{lore.sourcesMonitored} sources monitored</span>
+          <span>{sourceCount} sources monitored</span>
           <span>{allStories.length} stories this cycle</span>
           <span style={{ marginLeft: 'auto', opacity: 0.6 }}>
             Updated {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -348,21 +374,36 @@ export default async function Home() {
                 </div>
               )}
 
+              {/* ── Campus & Chapter — catch-all ─────────────────────────── */}
+              {campusPool.length > 0 && (
+                <div style={{ marginBottom: '2rem', borderTop: '1px solid var(--rule)', paddingTop: '1.5rem' }}>
+                  <SectionHeader kicker="Campus & Chapter" title="In The News" variant="campus" />
+                  <div className="story-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 2rem' }}>
+                    <div className="col-divider">
+                      {campusPool.filter((_, i) => i % 2 === 0).map(s => <StorySimple key={s.id} s={s} />)}
+                    </div>
+                    <div>
+                      {campusPool.filter((_, i) => i % 2 === 1).map(s => <StorySimple key={s.id} s={s} />)}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Ad — mid-feed */}
               <div style={{ margin: '1.5rem 0' }}>
                 <AdUnit slot="leaderboard" />
               </div>
 
-              {/* ── Campus — Local & School News ─────────────────────────── */}
+              {/* ── Local — School-specific news ─────────────────────────── */}
               {localPool.length > 0 && (
                 <div style={{ marginBottom: '2rem' }}>
                   <SectionHeader kicker="School & Local News" title="On Campus" variant="campus" />
                   <div className="story-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 2rem' }}>
                     <div className="col-divider">
-                      {localPool.filter((_, i) => i % 2 === 0).map(s => <StorySimple key={s.id} s={s} />)}
+                      {localLeft.map(s => <StorySimple key={s.id} s={s} />)}
                     </div>
                     <div>
-                      {localPool.filter((_, i) => i % 2 === 1).map(s => <StorySimple key={s.id} s={s} />)}
+                      {localRight.map(s => <StorySimple key={s.id} s={s} />)}
                     </div>
                   </div>
                 </div>
@@ -408,7 +449,7 @@ export default async function Home() {
               {/* Rush Coaching */}
               {coachingPool.length > 0 && (
                 <div className="coaching-card">
-                  <div className="coaching-card-label">I Prepared For This</div>
+                  <div className="coaching-card-label">Rush Insider</div>
                   {coachingPool.map(s => (
                     <Link key={s.id} href={`/story/${s.id}`} className="sidebar-item" style={{ borderBottomColor: 'rgba(176,136,32,0.2)' }}>
                       <div className="sidebar-headline" style={{ color: 'var(--ink)' }}>{s.headline}</div>

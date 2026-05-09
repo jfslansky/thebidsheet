@@ -331,12 +331,35 @@ export async function ingestFeeds(): Promise<number> {
 
   await Promise.all(fresh.map(s => stories.set(s.id, s)))
 
+  // Generate Elle Woods voice for fresh stories (batched)
+  const needVoice = fresh.filter(s => !s.adequateVoice && s.headline).slice(0, 40)
+  if (needVoice.length > 0) {
+    try {
+      const headlines = needVoice.map((s, i) => `${i + 1}. ${s.headline}`).join('\n')
+      const msg = await client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2000,
+        system: 'You are the editorial voice of The Bid Sheet — the most plugged-in girl in Greek life. You cover sorority rush, bid day, fashion, chapter drama, and campus life at SEC and Big Ten schools. Your takes are confident, warm, insider, and a little obsessive. You sound like Elle Woods if she ran a sorority news Instagram. Write short, punchy takes — 1-2 sentences max. Light, fun, knowing. Never preachy, never a reporter, never formal.',
+        messages: [{
+          role: 'user',
+          content: `For each headline, write 1-2 sentences of insider commentary. Fun, specific, confident. Return ONLY valid JSON: {"takes": ["take 1", "take 2", ...]}\n\n${headlines}`,
+        }],
+      })
+      const text = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+      const result = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || '{}')
+      if (Array.isArray(result.takes)) {
+        result.takes.forEach((take: string, i: number) => {
+          if (needVoice[i] && take) needVoice[i].adequateVoice = String(take).slice(0, 280)
+        })
+        await Promise.all(needVoice.filter(s => s.adequateVoice).map(s => stories.set(s.id, s)))
+      }
+    } catch { /* non-fatal */ }
+  }
+
   const allStories = await stories.values()
 
-  // Self-review: Claude extracts signal phrases from top stories
-  const topForReview = [...allStories]
-    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-    .slice(0, 8)
+  // Extract trending signals from top stories
+  const topForReview = [...allStories].sort((a, b) => (b.score ?? 0) - (a.score ?? 0)).slice(0, 10)
   if (topForReview.length >= 3) {
     try {
       const headlines = topForReview.map(s => s.headline || s.originalHeadline).join('\n')
@@ -345,7 +368,7 @@ export async function ingestFeeds(): Promise<number> {
         max_tokens: 200,
         messages: [{
           role: 'user',
-          content: `These are the highest-scoring Greek life / sorority news headlines right now:\n${headlines}\n\nIdentify 6-10 short phrases (2-4 words each, lowercase) that capture what makes these stories alarming, chaotic, or newsworthy — patterns that would help find similar stories. Return ONLY valid JSON: {"signals": ["phrase one", "phrase two", ...]}`,
+          content: `Greek life / sorority headlines:\n${headlines}\n\nExtract 6-10 short phrases (2-4 words, lowercase) that capture trending topics or patterns. Return ONLY valid JSON: {"signals": ["phrase one", ...]}`,
         }],
       })
       const text = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
@@ -357,7 +380,7 @@ export async function ingestFeeds(): Promise<number> {
   }
 
   await learnFromEngagement(allStories)
-  await mutateLore()
+  await mutateLore(allStories.length)
 
   return fresh.length
 }
