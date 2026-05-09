@@ -199,32 +199,31 @@ export default async function Home() {
     )
   }
 
-  // Vertical card — big image top, text below (magazine grid style)
-  function StoryVertical({ s, rushVariant }: { s: Story; rushVariant?: boolean }) {
-    const ph = rushVariant ? 'story-card-v-placeholder-rush' : ''
+  // Overlay card — image fills the card, text overlaid on gradient (primary card type)
+  function StoryCardOverlay({ s, variant }: { s: Story; variant?: 'fashion' | 'rush' }) {
+    const phClass = variant === 'fashion' ? 'story-card-o-ph-fashion' : variant === 'rush' ? 'story-card-o-ph-rush' : 'story-card-o-ph'
     return (
-      <Link href={`/story/${s.id}`} className="story-card-v" style={{ textDecoration: 'none' }}>
-        {s.imageUrl
-          // eslint-disable-next-line @next/next/no-img-element
-          ? <img className="story-card-v-img" src={s.imageUrl} alt="" />
-          : (
-            <div className={`story-card-v-placeholder ${ph}`}>
-              <span className="story-card-v-placeholder-source">{s.source}</span>
-            </div>
-          )
-        }
-        <div className="story-headline" style={{ fontSize: '0.97rem', marginBottom: '0.25rem' }}>{s.headline}</div>
-        {s.adequateVoice && (
-          <div className="story-voice" style={{ fontSize: '0.84rem', marginBottom: '0.2rem' }}>
-            <RushVoice text={s.adequateVoice} />
+      <Link href={`/story/${s.id}`} className="story-card-o">
+        <div className="story-card-o-wrap">
+          {s.imageUrl
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img className="story-card-o-img" src={s.imageUrl} alt="" />
+            : <div className={`story-card-o-ph ${phClass}`} />
+          }
+          <div className="story-card-o-grad" />
+          <div className="story-card-o-text">
+            <div className="story-card-o-source">{s.source}</div>
+            <div className="story-card-o-hed">{s.headline}</div>
           </div>
+        </div>
+        {s.adequateVoice && (
+          <div className="story-card-o-voice"><RushVoice text={s.adequateVoice} /></div>
         )}
-        <div className="source-tag">{s.source}</div>
       </Link>
     )
   }
 
-  function StoryHorizontal({ s, placeholderClass }: { s: Story; placeholderClass?: string }) {
+  function StoryHorizontal({ s, placeholderClass }: { s: Story; placeholderClass?: string }) { // kept for potential use
     return (
       <Link href={`/story/${s.id}`} className="story-card-h" style={{ textDecoration: 'none' }}>
         {s.imageUrl
@@ -298,33 +297,26 @@ export default async function Home() {
           </span>
         </div>
 
-        {/* Hero */}
+        {/* Hero — fullbleed image with text overlay */}
         {splash && (
-          <div className="hero-wrap">
-            <div className="hero-image-col">
-              {splash.imageUrl
-                ? <img src={splash.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> // eslint-disable-line @next/next/no-img-element
-                : <div className="hero-image-placeholder" />
-              }
-            </div>
-            <div className="hero-text-col">
-              <div>
-                <div className="hero-kicker">
-                  {isFashionStory(splash) ? 'Fashion & Style' : isRushStory(splash) ? 'Rush Season' : 'Chapter Life'}
-                </div>
-                <Link href={`/story/${splash.id}`} className="hero-headline">{splash.headline}</Link>
-                {splash.adequateVoice && (
-                  <div className="hero-voice"><RushVoice text={splash.adequateVoice} /></div>
-                )}
+          <Link href={`/story/${splash.id}`} className="hero-v2">
+            {splash.imageUrl
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={splash.imageUrl} alt="" className="hero-v2-img" />
+              : <div className="hero-v2-ph" />
+            }
+            <div className="hero-v2-grad" />
+            <div className="hero-v2-content">
+              <div className="hero-kicker">
+                {isFashionStory(splash) ? 'Fashion & Style' : isRushStory(splash) ? 'Rush Season' : 'Chapter Life'}
               </div>
-              <div className="hero-meta">
-                <div className="hero-source">{splash.source}</div>
-                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '0.5rem', letterSpacing: '0.12em', color: 'rgba(253,248,245,0.4)', textTransform: 'uppercase' }}>
-                  {(splash.score ?? 0) >= 8 ? '⭐ Top Story' : 'Featured'}
-                </div>
-              </div>
+              <div className="hero-v2-hed">{splash.headline}</div>
+              {splash.adequateVoice && (
+                <div className="hero-voice"><RushVoice text={splash.adequateVoice} /></div>
+              )}
+              <div className="hero-source" style={{ marginTop: '0.85rem' }}>{splash.source}</div>
             </div>
-          </div>
+          </Link>
         )}
 
         {allStories.length === 0 && (
@@ -348,16 +340,16 @@ export default async function Home() {
             {/* Main content */}
             <div>
 
-              {/* ── The Look — Fashion (3-col image grid) ───────────────── */}
+              {/* ── The Look — Fashion (3-col overlay grid) ─────────────── */}
               {fashionPool.length > 0 && (
-                <div className="section-fashion-bg" style={{ marginBottom: '2rem' }}>
+                <div style={{ marginBottom: '2.5rem' }}>
                   <SectionHeader kicker="Fashion & Style" title="The Look" variant="fashion" />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }}>
-                    {fashionPool.slice(0, 6).map(s => <StoryVertical key={s.id} s={s} />)}
+                  <div className="grid-3col">
+                    {fashionPool.slice(0, 6).map(s => <StoryCardOverlay key={s.id} s={s} variant="fashion" />)}
                   </div>
                   {fashionPool.length > 6 && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginTop: '1.25rem', borderTop: '1px solid var(--rule)', paddingTop: '1.25rem' }}>
-                      {fashionPool.slice(6, 12).map(s => <StoryVertical key={s.id} s={s} />)}
+                    <div className="grid-3col" style={{ marginTop: '1.25rem' }}>
+                      {fashionPool.slice(6, 12).map(s => <StoryCardOverlay key={s.id} s={s} variant="fashion" />)}
                     </div>
                   )}
                 </div>
@@ -368,16 +360,16 @@ export default async function Home() {
                 <AdUnit slot="responsive" />
               </div>
 
-              {/* ── Bid Season — Rush & Recruitment (3-col grid) ─────────── */}
+              {/* ── Bid Season — Rush & Recruitment (3-col overlay grid) ──── */}
               {rushPool.length > 0 && (
-                <div style={{ marginBottom: '2rem' }}>
+                <div style={{ marginBottom: '2.5rem' }}>
                   <SectionHeader kicker="Recruitment & Rush Season" title="Bid Season" variant="rush" />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }}>
-                    {rushPool.slice(0, 6).map(s => <StoryVertical key={s.id} s={s} rushVariant />)}
+                  <div className="grid-3col">
+                    {rushPool.slice(0, 6).map(s => <StoryCardOverlay key={s.id} s={s} variant="rush" />)}
                   </div>
                   {rushPool.length > 6 && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginTop: '1.25rem', borderTop: '1px solid var(--rule)', paddingTop: '1.25rem' }}>
-                      {rushPool.slice(6, 12).map(s => <StoryVertical key={s.id} s={s} rushVariant />)}
+                    <div className="grid-3col" style={{ marginTop: '1.25rem' }}>
+                      {rushPool.slice(6, 12).map(s => <StoryCardOverlay key={s.id} s={s} variant="rush" />)}
                     </div>
                   )}
                 </div>

@@ -294,13 +294,156 @@ body {
   color: rgba(253,248,245,0.4);
 }
 
-/* ── Vertical story card (image-top, magazine grid) ──────────────────────── */
+/* ── Overlay story card (image with text overlay — primary card type) ─────── */
+.story-card-o {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.story-card-o:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(28, 18, 24, 0.14);
+}
+
+.story-card-o-wrap {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.story-card-o-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.story-card-o:hover .story-card-o-img { transform: scale(1.04); }
+
+.story-card-o-ph {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1c1218 0%, #3a1530 100%);
+}
+
+.story-card-o-ph-fashion {
+  background: linear-gradient(135deg, #7a1040 0%, #c8336a 80%, #a82258 100%);
+}
+
+.story-card-o-ph-rush {
+  background: linear-gradient(135deg, #3a2000 0%, #8a6010 60%, #b08820 100%);
+}
+
+.story-card-o-grad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.45) 50%, transparent 80%);
+}
+
+.story-card-o-text {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 0.9rem 1rem 0.85rem;
+}
+
+.story-card-o-source {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.46rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 0.3rem;
+}
+
+.story-card-o-hed {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 0.92rem;
+  line-height: 1.25;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.story-card-o-voice {
+  padding: 0.55rem 0 0;
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 0.84rem;
+  color: var(--ink-mid);
+  line-height: 1.55;
+}
+
+/* ── Fullbleed hero ────────────────────────────────────────────────────────── */
+.hero-v2 {
+  display: block;
+  text-decoration: none;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.hero-v2-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.hero-v2:hover .hero-v2-img { transform: scale(1.03); }
+
+.hero-v2-ph {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1c1218 0%, #3a1530 55%, #1c1218 100%);
+}
+
+.hero-v2-grad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.08) 75%, transparent 100%);
+}
+
+.hero-v2-content {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 2.5rem 3rem;
+}
+
+.hero-v2-hed {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-style: italic;
+  font-size: clamp(1.8rem, 3.2vw, 3rem);
+  line-height: 1.1;
+  color: #fff;
+  letter-spacing: -0.025em;
+  margin: 0.75rem 0 0.6rem;
+  text-decoration: none;
+  display: block;
+}
+
+/* ── Vertical story card (kept for any legacy use) ────────────────────────── */
 .story-card-v {
   display: block;
   text-decoration: none;
   color: inherit;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.story-card-v:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(28,18,24,0.1); }
 .story-card-v:hover .story-headline { color: var(--pink); }
 
 .story-card-v-img {
@@ -315,7 +458,6 @@ body {
   width: 100%;
   aspect-ratio: 4 / 3;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   margin-bottom: 0.65rem;
@@ -336,6 +478,13 @@ body {
   padding: 0 1rem;
 }
 
+/* ── 3-column grid ────────────────────────────────────────────────────────── */
+.grid-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
 /* ── Horizontal story card (image-left) — kept for sidebar/list use ──────── */
 .story-card-h {
   display: flex;
@@ -344,7 +493,10 @@ body {
   border-bottom: 1px solid var(--rule);
   text-decoration: none;
   color: inherit;
+  transition: opacity 0.15s;
 }
+
+.story-card-h:hover { opacity: 0.82; }
 
 .story-card-h:last-child { border-bottom: none; }
 .story-card-h:hover .story-headline { color: var(--pink); }
@@ -555,6 +707,12 @@ body {
   .hero-image-col { min-height: 200px; }
   .hero-text-col  { padding: 1.25rem; min-height: auto; }
   .hero-headline  { font-size: 1.4rem; }
+
+  .hero-v2       { aspect-ratio: 4 / 3; border-radius: 8px; }
+  .hero-v2-content { padding: 1.25rem 1.5rem; }
+  .hero-v2-hed   { font-size: 1.4rem; }
+
+  .grid-3col { grid-template-columns: 1fr 1fr !important; }
 
   .story-2col { grid-template-columns: 1fr !important; }
   .story-2col > div { border-right: none !important; padding-right: 0 !important; }

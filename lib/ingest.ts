@@ -303,7 +303,7 @@ export async function ingestFeeds(): Promise<number> {
         (s.score ?? 0) >= 1 &&
         !s.sourceUrl.includes('news.google.com')  // skip any still-unresolved Google URLs
       )
-      .slice(0, 50)
+      .slice(0, 100)
       .map(async s => {
         try {
           const res = await fetch(s.sourceUrl, {
@@ -332,31 +332,42 @@ export async function ingestFeeds(): Promise<number> {
   await Promise.all(fresh.map(s => stories.set(s.id, s)))
 
   // Generate Elle Woods voice for fresh stories (batched)
-  const needVoice = fresh.filter(s => !s.adequateVoice && s.headline).slice(0, 40)
-  if (needVoice.length > 0) {
+  const VOICE_SYSTEM = 'You are the editorial voice of The Bid Sheet — the most plugged-in girl in Greek life. You cover sorority rush, bid day, fashion, chapter drama, and campus life at SEC and Big Ten schools. Your takes are confident, warm, insider, and a little obsessive. You sound like Elle Woods if she ran a sorority news vertical. Write 2-3 sentence takes that give real context and personality — not just a quip. Think: what would your most informed friend text you about this? Light, fun, knowing, never preachy or formal.'
+  const VOICE_PROMPT = (headlines: string) => `For each headline, write 2-3 sentences of insider commentary with real context and sorority energy. Be specific and fun. Return ONLY valid JSON: {"takes": ["take 1", "take 2", ...]}\n\n${headlines}`
+
+  async function generateVoice(batch: Story[]): Promise<void> {
+    if (!batch.length) return
     try {
-      const headlines = needVoice.map((s, i) => `${i + 1}. ${s.headline}`).join('\n')
+      const headlines = batch.map((s, i) => `${i + 1}. ${s.headline}`).join('\n')
       const msg = await client.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 2000,
-        system: 'You are the editorial voice of The Bid Sheet — the most plugged-in girl in Greek life. You cover sorority rush, bid day, fashion, chapter drama, and campus life at SEC and Big Ten schools. Your takes are confident, warm, insider, and a little obsessive. You sound like Elle Woods if she ran a sorority news Instagram. Write short, punchy takes — 1-2 sentences max. Light, fun, knowing. Never preachy, never a reporter, never formal.',
-        messages: [{
-          role: 'user',
-          content: `For each headline, write 1-2 sentences of insider commentary. Fun, specific, confident. Return ONLY valid JSON: {"takes": ["take 1", "take 2", ...]}\n\n${headlines}`,
-        }],
+        max_tokens: 3000,
+        system: VOICE_SYSTEM,
+        messages: [{ role: 'user', content: VOICE_PROMPT(headlines) }],
       })
       const text = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
       const result = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || '{}')
       if (Array.isArray(result.takes)) {
         result.takes.forEach((take: string, i: number) => {
-          if (needVoice[i] && take) needVoice[i].adequateVoice = String(take).slice(0, 280)
+          if (batch[i] && take) batch[i].adequateVoice = String(take).slice(0, 400)
         })
-        await Promise.all(needVoice.filter(s => s.adequateVoice).map(s => stories.set(s.id, s)))
+        await Promise.all(batch.filter(s => s.adequateVoice).map(s => stories.set(s.id, s)))
       }
     } catch { /* non-fatal */ }
   }
 
-  const allStories = await stories.values()
+  const needVoiceFresh = fresh.filter(s => !s.adequateVoice && s.headline).slice(0, 60)
+  await generateVoice(needVoiceFresh)
+
+  // Also backfill voice on existing stored stories that were ingested before voice was added
+  const allStoredNow = await stories.values()
+  const needVoiceExisting = allStoredNow
+    .filter(s => !s.adequateVoice && s.headline && !fresh.some(f => f.id === s.id))
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+    .slice(0, 50)
+  await generateVoice(needVoiceExisting)
+
+  const allStories = allStoredNow
 
   // Extract trending signals from top stories
   const topForReview = [...allStories].sort((a, b) => (b.score ?? 0) - (a.score ?? 0)).slice(0, 10)
