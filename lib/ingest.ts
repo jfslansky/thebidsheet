@@ -152,15 +152,16 @@ export async function ingestFeeds(): Promise<number> {
       })
   )
 
-  // OG scrape existing high-scorers that still lack an image
+  // OG scrape existing stories that lack an image — no score gate, top 30 by score
   await Promise.allSettled(
     rescored
-      .filter(s => !s.imageUrl && (s.score ?? 0) >= 6 && !s.sourceUrl.includes('news.google.com'))
-      .slice(0, 10)
+      .filter(s => !s.imageUrl && !s.sourceUrl.includes('news.google.com'))
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+      .slice(0, 30)
       .map(async s => {
         try {
           const res = await fetch(s.sourceUrl, {
-            signal: AbortSignal.timeout(4000),
+            signal: AbortSignal.timeout(6000),
             headers: { 'User-Agent': googlebotUA },
             redirect: 'follow',
           })
@@ -168,6 +169,8 @@ export async function ingestFeeds(): Promise<number> {
           const html = await res.text()
           const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
             ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+            ?? html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
+            ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
           if (m?.[1]) {
             s.imageUrl = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
             await stories.set(s.id, s)
