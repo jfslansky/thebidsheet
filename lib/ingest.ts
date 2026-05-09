@@ -8,6 +8,7 @@ import {
   FEEDS, PER_FEED, MAX_STORIES,
   analyzeStory, isSameStory, SOURCE_TOPICONLY,
 } from './score'
+import { runRepatch } from './repatch'
 
 export { analyzeStory, SOURCE_TOPICONLY }
 
@@ -90,8 +91,13 @@ function decodeGoogleNewsUrl(gnUrl: string): string {
 export async function ingestFeeds(): Promise<number> {
   const [existing, lore] = await Promise.all([stories.values(), getLore()])
 
-  // Rescore all stored stories
+  // Evict stories older than 45 days — prevents old hazing/archive stories squatting at high scores
+  const cutoffMs = Date.now() - 45 * 24 * 60 * 60 * 1000
   await Promise.all(existing.map(async story => {
+    if (new Date(story.ingestedAt).getTime() < cutoffMs) {
+      await stories.delete(story.id)
+      return
+    }
     const title = story.originalHeadline || story.headline
     const scores = analyzeStory(title)
     if (scores.score < 0) {
@@ -361,8 +367,9 @@ export async function ingestFeeds(): Promise<number> {
   await mutateLore(allStories.length)
 
   // Auto-repatch: rewrite headlines, generate voice + analysis for all unvoiced stories
-  const { runRepatch } = await import('./repatch')
-  await runRepatch(40, true, 120_000)
+  try {
+    await runRepatch(40, true, 120_000)
+  } catch { /* non-fatal — repatch errors shouldn't fail ingest */ }
 
   return fresh.length
 }
