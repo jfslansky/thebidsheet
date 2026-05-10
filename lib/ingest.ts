@@ -134,6 +134,7 @@ export async function ingestFeeds(): Promise<number> {
 
   // Fix existing stories: decode Google redirect URLs, promote RSS images for unimaged stories
   const googlebotUA = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+  const googleHostRe = /google|gstatic|googleapis|ggpht|googleusercontent/
   await Promise.allSettled(
     rescored
       .filter(s => s.sourceUrl.includes('news.google.com') || (!s.imageUrl && s.rssImageUrl))
@@ -157,7 +158,10 @@ export async function ingestFeeds(): Promise<number> {
                   const html = await res.text()
                   const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
                     ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
-                  if (m?.[1]) s.imageUrl = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
+                  if (m?.[1]) {
+                    const img = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
+                    try { if (!googleHostRe.test(new URL(img).hostname)) s.imageUrl = img } catch { /* invalid URL */ }
+                  }
                 }
               }
             }
@@ -189,8 +193,8 @@ export async function ingestFeeds(): Promise<number> {
             ?? html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
             ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
           if (m?.[1]) {
-            s.imageUrl = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
-            await stories.set(s.id, s)
+            const img = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
+            try { if (!googleHostRe.test(new URL(img).hostname)) { s.imageUrl = img; await stories.set(s.id, s) } } catch { /* invalid URL */ }
           }
         } catch { /* non-fatal */ }
       })
@@ -346,8 +350,8 @@ export async function ingestFeeds(): Promise<number> {
           const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
             ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
           if (m?.[1]) {
-            const url = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
-            s.imageUrl = url
+            const img = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
+            try { if (!googleHostRe.test(new URL(img).hostname)) s.imageUrl = img } catch { /* invalid URL */ }
           }
         } catch { /* non-fatal */ }
       })
@@ -386,10 +390,10 @@ export async function ingestFeeds(): Promise<number> {
   await learnFromEngagement(allStories)
   await mutateLore(allStories.length)
 
-  // Auto-repatch: rewrite headlines, generate voice + analysis for all unvoiced stories
+  // One quick repatch pass for freshly ingested stories — full backfill via admin /api/repatch
   try {
-    await runRepatch(40, true, 120_000)
-  } catch { /* non-fatal — repatch errors shouldn't fail ingest */ }
+    await runRepatch(20, false, 28_000)
+  } catch { /* non-fatal */ }
 
   return fresh.length
 }

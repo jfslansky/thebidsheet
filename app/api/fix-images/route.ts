@@ -6,6 +6,8 @@ export const maxDuration = 300
 
 const UA = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
 
+const GOOGLE_HOST_RE = /google|gstatic|googleapis|ggpht|googleusercontent/
+
 async function resolveAndScrape(url: string): Promise<{ resolvedUrl?: string; imageUrl?: string }> {
   try {
     const res = await fetch(url, {
@@ -14,16 +16,24 @@ async function resolveAndScrape(url: string): Promise<{ resolvedUrl?: string; im
       redirect: 'follow',
     })
     if (!res.ok) return {}
-    const html = await res.text()
-    // If redirect followed us out of google, capture the real URL
+
+    // If redirect landed us on a real article (out of google), use that URL
     const resolvedUrl = (url.includes('news.google.com') && !res.url.includes('news.google.com'))
       ? res.url : undefined
+
+    // Only scrape OG image if we actually resolved to the article page
+    if (!resolvedUrl && url.includes('news.google.com')) return { resolvedUrl }
+
+    const html = await res.text()
     const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
       ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
       ?? html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
       ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
-    const imageUrl = m?.[1] ? (m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href) : undefined
-    return { resolvedUrl, imageUrl }
+    if (!m?.[1]) return { resolvedUrl }
+    const imgUrl = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
+    // Reject Google CDN images — they're placeholders, not article images
+    if (GOOGLE_HOST_RE.test(new URL(imgUrl).hostname)) return { resolvedUrl }
+    return { resolvedUrl, imageUrl: imgUrl }
   } catch { return {} }
 }
 
