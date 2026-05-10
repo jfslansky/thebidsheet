@@ -4,9 +4,31 @@ import { stories } from '@/lib/store'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
-const UA = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 
 const GOOGLE_HOST_RE = /google|gstatic|googleapis|ggpht|googleusercontent/
+const SKIP_IMG = /favicon|\/icon|logo|avatar|pixel|tracking|badge|button|spinner|placeholder|\.svg/i
+
+function extractImageFromHtml(html: string, baseUrl: string): string | undefined {
+  const meta = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+    ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+    ?? html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
+    ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
+  if (meta?.[1]) {
+    try {
+      const u = meta[1].startsWith('http') ? meta[1] : new URL(meta[1], baseUrl).href
+      if (!GOOGLE_HOST_RE.test(new URL(u).hostname)) return u
+    } catch { /* invalid */ }
+  }
+  for (const m of html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)) {
+    const src = m[1]
+    if (!src.startsWith('http')) continue
+    if (SKIP_IMG.test(src)) continue
+    try { if (GOOGLE_HOST_RE.test(new URL(src).hostname)) continue } catch { continue }
+    return src
+  }
+  return undefined
+}
 
 async function resolveAndScrape(url: string): Promise<{ resolvedUrl?: string; imageUrl?: string }> {
   try {
@@ -21,19 +43,10 @@ async function resolveAndScrape(url: string): Promise<{ resolvedUrl?: string; im
     const resolvedUrl = (url.includes('news.google.com') && !res.url.includes('news.google.com'))
       ? res.url : undefined
 
-    // Only scrape OG image if we actually resolved to the article page
     if (!resolvedUrl && url.includes('news.google.com')) return { resolvedUrl }
 
     const html = await res.text()
-    const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-      ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
-      ?? html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
-      ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
-    if (!m?.[1]) return { resolvedUrl }
-    const imgUrl = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
-    // Reject Google CDN images — they're placeholders, not article images
-    if (GOOGLE_HOST_RE.test(new URL(imgUrl).hostname)) return { resolvedUrl }
-    return { resolvedUrl, imageUrl: imgUrl }
+    return { resolvedUrl, imageUrl: extractImageFromHtml(html, res.url) }
   } catch { return {} }
 }
 

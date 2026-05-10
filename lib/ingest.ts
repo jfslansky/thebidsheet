@@ -88,6 +88,30 @@ function decodeGoogleNewsUrl(gnUrl: string): string {
   } catch { return gnUrl }
 }
 
+function extractImageFromHtml(html: string, baseUrl: string, skipRe: RegExp): string | undefined {
+  // 1. og:image / twitter:image meta tags
+  const meta = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+    ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+    ?? html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
+    ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
+  if (meta?.[1]) {
+    try {
+      const u = meta[1].startsWith('http') ? meta[1] : new URL(meta[1], baseUrl).href
+      if (!skipRe.test(new URL(u).hostname)) return u
+    } catch { /* invalid */ }
+  }
+  // 2. First <img src> in article body that looks like a real photo
+  const SKIP = /favicon|\/icon|logo|avatar|pixel|tracking|badge|button|spinner|placeholder|\.svg/i
+  for (const m of html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)) {
+    const src = m[1]
+    if (!src.startsWith('http')) continue
+    if (SKIP.test(src)) continue
+    try { if (skipRe.test(new URL(src).hostname)) continue } catch { continue }
+    return src
+  }
+  return undefined
+}
+
 export async function ingestFeeds(): Promise<number> {
   const [existing, lore] = await Promise.all([stories.values(), getLore()])
 
@@ -177,10 +201,8 @@ export async function ingestFeeds(): Promise<number> {
             ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
             ?? html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
             ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
-          if (m?.[1]) {
-            const img = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
-            try { if (!googleHostRe.test(new URL(img).hostname)) { s.imageUrl = img; await stories.set(s.id, s) } } catch { /* invalid URL */ }
-          }
+          const imgUrl = extractImageFromHtml(html, res.url, googleHostRe)
+          if (imgUrl) { s.imageUrl = imgUrl; await stories.set(s.id, s) }
         } catch { /* non-fatal */ }
       })
   )
@@ -309,40 +331,41 @@ export async function ingestFeeds(): Promise<number> {
     await Promise.all(evictCandidates.slice(0, toEvict).map(s => stories.delete(s.id)))
   }
 
-  // Step 1: Resolve Google News URLs via protobuf decode (no HTTP needed)
-  for (const s of fresh) {
-    if (s.sourceUrl.includes('news.google.com')) {
-      const decoded = decodeGoogleNewsUrl(s.sourceUrl)
-      if (decoded !== s.sourceUrl) s.sourceUrl = decoded
+  // Resolve Google News URLs — drop any that can't be decoded (no image possible)
+  for (let i = fresh.length - 1; i >= 0; i--) {
+    const s = fresh[i]
+    if (!s.sourceUrl.includes('news.google.com')) continue
+    const decoded = decodeGoogleNewsUrl(s.sourceUrl)
+    if (decoded !== s.sourceUrl) {
+      s.sourceUrl = decoded
+    } else {
+      fresh.splice(i, 1) // can't resolve → drop it, don't pollute store
     }
   }
 
-  // Step 2: OG scrape fresh stories that need an image (no score gate — just top 40)
+  // OG scrape all fresh stories that need an image — no score gate, up to 60
+  const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
   await Promise.allSettled(
     fresh
-      .filter(s => !s.rssImageUrl && !s.sourceUrl.includes('news.google.com'))
+      .filter(s => !s.rssImageUrl)
       .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-      .slice(0, 40)
+      .slice(0, 60)
       .map(async s => {
         try {
           const res = await fetch(s.sourceUrl, {
-            signal: AbortSignal.timeout(4000),
-            headers: { 'User-Agent': googlebotUA },
+            signal: AbortSignal.timeout(5000),
+            headers: { 'User-Agent': BROWSER_UA },
             redirect: 'follow',
           })
           if (!res.ok) return
           const html = await res.text()
-          const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-            ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
-          if (m?.[1]) {
-            const img = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
-            try { if (!googleHostRe.test(new URL(img).hostname)) s.imageUrl = img } catch { /* invalid URL */ }
-          }
+          const imgUrl = extractImageFromHtml(html, res.url, googleHostRe)
+          if (imgUrl) s.imageUrl = imgUrl
         } catch { /* non-fatal */ }
       })
   )
 
-  // Promote RSS image for any story that didn't get an OG image
+  // Promote RSS image for any story that still has no image
   for (const s of fresh) {
     if (!s.imageUrl && s.rssImageUrl) s.imageUrl = s.rssImageUrl
   }
