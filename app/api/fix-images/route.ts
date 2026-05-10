@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { stories } from '@/lib/store'
+import { FASHION_SOURCES } from '@/lib/score'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -7,7 +8,8 @@ export const maxDuration = 300
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 
 const GOOGLE_HOST_RE = /google|gstatic|googleapis|ggpht|googleusercontent/
-const SKIP_IMG = /\.svg(\?|$)|\.gif(\?|$)|1x1|spacer|pixel\.gif|tracking\.gif/i
+const SKIP_EXT = /\.svg(\?|$)|\.gif(\?|$)/i
+const SKIP_FILE = /^(logo|favicon|icon|brand|sprite|header|footer|nav)[^a-z]/i
 
 function extractImageFromHtml(html: string, baseUrl: string): string | undefined {
   const meta = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
@@ -30,7 +32,12 @@ function extractImageFromHtml(html: string, baseUrl: string): string | undefined
     if (!srcM) continue
     const src = srcM[1]
     if (!src.startsWith('http')) continue
-    if (SKIP_IMG.test(src)) continue
+    if (SKIP_EXT.test(src)) continue
+    const filename = (src.split('/').pop() ?? '').split('?')[0].toLowerCase()
+    if (SKIP_FILE.test(filename)) continue
+    const w = parseInt(t.match(/\bwidth=["'](\d+)["']/)?.[1] ?? '999')
+    const h = parseInt(t.match(/\bheight=["'](\d+)["']/)?.[1] ?? '999')
+    if (w < 200 || h < 100) continue
     try { if (GOOGLE_HOST_RE.test(new URL(src).hostname)) continue } catch { continue }
     return src
   }
@@ -64,10 +71,12 @@ export async function GET(req: NextRequest) {
 
   const all = await stories.values()
   // Include google news URLs — try HTTP redirect resolution for them too
-  const needImage = all
-    .filter(s => !s.imageUrl)
+  const fashionNoImage = all.filter(s => !s.imageUrl && FASHION_SOURCES.has(s.source))
+  const otherNoImage = all
+    .filter(s => !s.imageUrl && !FASHION_SOURCES.has(s.source))
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-    .slice(0, 80)
+    .slice(0, 60)
+  const needImage = [...fashionNoImage, ...otherNoImage].slice(0, 80)
 
   let fixed = 0
   let resolved = 0

@@ -101,7 +101,8 @@ function extractImageFromHtml(html: string, baseUrl: string, skipRe: RegExp): st
     } catch { /* invalid */ }
   }
   // 2. First real <img> — check src + lazy-load attrs (data-src, data-lazy-src, data-original)
-  const SKIP = /\.svg(\?|$)|\.gif(\?|$)|1x1|spacer|pixel\.gif|tracking\.gif/i
+  const SKIP_EXT = /\.svg(\?|$)|\.gif(\?|$)/i
+  const SKIP_FILE = /^(logo|favicon|icon|brand|sprite|header|footer|nav)[^a-z]/i
   for (const tag of html.matchAll(/<img\b[^>]+>/gi)) {
     const t = tag[0]
     const srcM = t.match(/\bsrc=["']([^"']+)["']/)
@@ -112,7 +113,14 @@ function extractImageFromHtml(html: string, baseUrl: string, skipRe: RegExp): st
     if (!srcM) continue
     const src = srcM[1]
     if (!src.startsWith('http')) continue
-    if (SKIP.test(src)) continue
+    if (SKIP_EXT.test(src)) continue
+    // Skip obvious logo/icon filenames (e.g. logo.png, favicon.ico) but not article photos that happen to contain these words mid-filename
+    const filename = (src.split('/').pop() ?? '').split('?')[0].toLowerCase()
+    if (SKIP_FILE.test(filename)) continue
+    // Skip tiny images with explicit small dimensions
+    const w = parseInt(t.match(/\bwidth=["'](\d+)["']/)?.[1] ?? '999')
+    const h = parseInt(t.match(/\bheight=["'](\d+)["']/)?.[1] ?? '999')
+    if (w < 200 || h < 100) continue
     try { if (skipRe.test(new URL(src).hostname)) continue } catch { continue }
     return src
   }

@@ -485,6 +485,17 @@ body {
   gap: 1.25rem;
 }
 
+/* ── 2-column portrait grid (The Look — fashion section) ─────────────────── */
+.grid-2col-portrait {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.grid-2col-portrait .story-card-o-wrap {
+  aspect-ratio: 3 / 4;
+}
+
 /* ── Horizontal story card (image-left) — kept for sidebar/list use ──────── */
 .story-card-h {
   display: flex;
@@ -713,6 +724,7 @@ body {
   .hero-v2-hed   { font-size: 1.4rem; }
 
   .grid-3col { grid-template-columns: 1fr 1fr !important; }
+  .grid-2col-portrait { grid-template-columns: 1fr !important; }
 
   .story-2col { grid-template-columns: 1fr !important; }
   .story-2col > div { border-right: none !important; padding-right: 0 !important; }

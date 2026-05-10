@@ -55,6 +55,12 @@ export default async function Home() {
       !text.includes('greek life') && !text.includes('hazing')
   }
 
+  const isWomenFocused = (s: Story) => {
+    if (FASHION_SOURCES.has(s.source)) return true
+    const text = `${s.headline} ${s.originalHeadline ?? ''}`.toLowerCase()
+    return !['fraternity', 'frat ', 'brotherhood', "men's fashion"].some(t => text.includes(t))
+  }
+
   const isCoachingStory = (s: Story) => COACHING_SOURCES.has(s.source)
 
   const isAccountabilityStory = (s: Story) => {
@@ -123,8 +129,10 @@ export default async function Home() {
   // Each section sorted by its own category score
   const fashionPool = diverse
     .filter(isFashionStory)
+    .filter(s => s.imageUrl)
+    .filter(isWomenFocused)
     .sort((a, b) => (b.fashionScore ?? b.score ?? 0) - (a.fashionScore ?? a.score ?? 0))
-    .slice(0, 18)
+    .slice(0, 24)
 
   const rushPool = diverse
     .filter(isRushStory)
@@ -349,11 +357,11 @@ export default async function Home() {
               {fashionPool.length > 0 && (
                 <div style={{ marginBottom: '2.5rem' }}>
                   <SectionHeader kicker="Fashion & Style" title="The Look" variant="fashion" />
-                  <div className="grid-3col">
+                  <div className="grid-2col-portrait">
                     {fashionPool.slice(0, 6).map(s => <StoryCardOverlay key={s.id} s={s} variant="fashion" />)}
                   </div>
                   {fashionPool.length > 6 && (
-                    <div className="grid-3col" style={{ marginTop: '1.25rem' }}>
+                    <div className="grid-2col-portrait" style={{ marginTop: '1.5rem' }}>
                       {fashionPool.slice(6, 12).map(s => <StoryCardOverlay key={s.id} s={s} variant="fashion" />)}
                     </div>
                   )}

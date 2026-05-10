@@ -449,6 +449,7 @@ export const LIFESTYLE_SOURCES = new Set([
 export const FASHION_SOURCES = new Set([
   'Who What Wear', 'StyleCaster', 'College Fashion', 'PopSugar Fashion', 'Glamour',
   'Cosmopolitan', 'ELLE', 'Seventeen', 'Something Greek',
+  'Her Campus', 'Teen Vogue',
 ])
 
 // Rush coaching sources: always route to coaching sidebar section
