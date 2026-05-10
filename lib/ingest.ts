@@ -346,8 +346,16 @@ export async function ingestFeeds(): Promise<number> {
     if (decoded !== s.sourceUrl) {
       s.sourceUrl = decoded
     } else {
-      fresh.splice(i, 1) // can't resolve → drop it, don't pollute store
+      fresh.splice(i, 1)
     }
+  }
+
+  // YouTube thumbnails — free, always available
+  for (const s of fresh) {
+    if (s.imageUrl || s.rssImageUrl) continue
+    const ytId = s.sourceUrl.match(/[?&]v=([A-Za-z0-9_-]{11})/)
+      ?? s.sourceUrl.match(/youtu\.be\/([A-Za-z0-9_-]{11})/)
+    if (ytId?.[1]) s.imageUrl = `https://img.youtube.com/vi/${ytId[1]}/hqdefault.jpg`
   }
 
   // OG scrape all fresh stories that need an image — no score gate, up to 60

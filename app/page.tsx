@@ -345,85 +345,55 @@ export default async function Home() {
             {/* Main content */}
             <div>
 
-              {/* ── The Look — Fashion ───────────────────────────────────── */}
-              {fashionPool.length > 0 && (() => {
-                const withImg = fashionPool.filter(s => s.imageUrl).slice(0, 12)
-                const noImg = fashionPool.filter(s => !s.imageUrl).slice(0, 9)
-                return (
-                  <div style={{ marginBottom: '2.5rem' }}>
-                    <SectionHeader kicker="Fashion & Style" title="The Look" variant="fashion" />
-                    {withImg.length > 0 && (
-                      <div className="grid-3col">
-                        {withImg.map(s => <StoryCardOverlay key={s.id} s={s} variant="fashion" />)}
-                      </div>
-                    )}
-                    {noImg.length > 0 && (
-                      <div style={{ marginTop: withImg.length > 0 ? '1.5rem' : 0, borderTop: withImg.length > 0 ? '1px solid var(--rule)' : 'none', paddingTop: withImg.length > 0 ? '1.5rem' : 0, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 1.75rem' }}>
-                        {[0,1,2].map(col => (
-                          <div key={col} style={{ borderRight: col < 2 ? '1px solid var(--rule)' : 'none', paddingRight: col < 2 ? '1.75rem' : 0 }}>
-                            {noImg.filter((_, i) => i % 3 === col).map(s => <StorySimple key={s.id} s={s} />)}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+              {/* ── The Look — Fashion (3-col overlay grid) ─────────────── */}
+              {fashionPool.length > 0 && (
+                <div style={{ marginBottom: '2.5rem' }}>
+                  <SectionHeader kicker="Fashion & Style" title="The Look" variant="fashion" />
+                  <div className="grid-3col">
+                    {fashionPool.slice(0, 6).map(s => <StoryCardOverlay key={s.id} s={s} variant="fashion" />)}
                   </div>
-                )
-              })()}
+                  {fashionPool.length > 6 && (
+                    <div className="grid-3col" style={{ marginTop: '1.25rem' }}>
+                      {fashionPool.slice(6, 12).map(s => <StoryCardOverlay key={s.id} s={s} variant="fashion" />)}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* In-content responsive ad */}
               <div style={{ margin: '1.5rem 0' }}>
                 <AdUnit slot="responsive" />
               </div>
 
-              {/* ── Bid Season — Rush & Recruitment ──────────────────────── */}
-              {rushPool.length > 0 && (() => {
-                const withImg = rushPool.filter(s => s.imageUrl).slice(0, 12)
-                const noImg = rushPool.filter(s => !s.imageUrl).slice(0, 9)
-                return (
-                  <div style={{ marginBottom: '2.5rem' }}>
-                    <SectionHeader kicker="Recruitment & Rush Season" title="Bid Season" variant="rush" />
-                    {withImg.length > 0 && (
-                      <div className="grid-3col">
-                        {withImg.map(s => <StoryCardOverlay key={s.id} s={s} variant="rush" />)}
-                      </div>
-                    )}
-                    {noImg.length > 0 && (
-                      <div style={{ marginTop: withImg.length > 0 ? '1.5rem' : 0, borderTop: withImg.length > 0 ? '1px solid var(--rule)' : 'none', paddingTop: withImg.length > 0 ? '1.5rem' : 0, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 1.75rem' }}>
-                        {[0,1,2].map(col => (
-                          <div key={col} style={{ borderRight: col < 2 ? '1px solid var(--rule)' : 'none', paddingRight: col < 2 ? '1.75rem' : 0 }}>
-                            {noImg.filter((_, i) => i % 3 === col).map(s => <StorySimple key={s.id} s={s} />)}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+              {/* ── Bid Season — Rush & Recruitment (3-col overlay grid) ──── */}
+              {rushPool.length > 0 && (
+                <div style={{ marginBottom: '2.5rem' }}>
+                  <SectionHeader kicker="Recruitment & Rush Season" title="Bid Season" variant="rush" />
+                  <div className="grid-3col">
+                    {rushPool.slice(0, 6).map(s => <StoryCardOverlay key={s.id} s={s} variant="rush" />)}
                   </div>
-                )
-              })()}
+                  {rushPool.length > 6 && (
+                    <div className="grid-3col" style={{ marginTop: '1.25rem' }}>
+                      {rushPool.slice(6, 12).map(s => <StoryCardOverlay key={s.id} s={s} variant="rush" />)}
+                    </div>
+                  )}
+                </div>
+              )}
 
-              {/* ── Chapter Tea ───────────────────────────────────────────── */}
-              {teaPool.length > 0 && (() => {
-                const withImg = teaPool.filter(s => s.imageUrl).slice(0, 12)
-                const noImg = teaPool.filter(s => !s.imageUrl).slice(0, 9)
-                return (
-                  <div style={{ marginBottom: '2.5rem' }}>
-                    <SectionHeader kicker="Greek Life & Campus" title="Chapter Tea" variant="light" />
-                    {withImg.length > 0 && (
-                      <div className="grid-3col">
-                        {withImg.map(s => <StoryCardOverlay key={s.id} s={s} />)}
-                      </div>
-                    )}
-                    {noImg.length > 0 && (
-                      <div style={{ marginTop: withImg.length > 0 ? '1.5rem' : 0, borderTop: withImg.length > 0 ? '1px solid var(--rule)' : 'none', paddingTop: withImg.length > 0 ? '1.5rem' : 0, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 1.75rem' }}>
-                        {[0,1,2].map(col => (
-                          <div key={col} style={{ borderRight: col < 2 ? '1px solid var(--rule)' : 'none', paddingRight: col < 2 ? '1.75rem' : 0 }}>
-                            {noImg.filter((_, i) => i % 3 === col).map(s => <StorySimple key={s.id} s={s} />)}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+              {/* ── Chapter Tea (3-col overlay grid) ─────────────────────── */}
+              {teaPool.length > 0 && (
+                <div style={{ marginBottom: '2.5rem' }}>
+                  <SectionHeader kicker="Greek Life & Campus" title="Chapter Tea" variant="light" />
+                  <div className="grid-3col">
+                    {teaPool.slice(0, 6).map(s => <StoryCardOverlay key={s.id} s={s} />)}
                   </div>
-                )
-              })()}
+                  {teaPool.length > 6 && (
+                    <div className="grid-3col" style={{ marginTop: '1.25rem' }}>
+                      {teaPool.slice(6, 12).map(s => <StoryCardOverlay key={s.id} s={s} />)}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* ── Campus & Chapter — catch-all ─────────────────────────── */}
               {campusPool.length > 0 && (
