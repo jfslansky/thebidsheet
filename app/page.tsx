@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { stories } from '@/lib/store'
 import { RushVoice } from '@/components/RushVoice'
 import { AdUnit } from '@/components/AdUnit'
@@ -176,11 +177,6 @@ export default async function Home() {
 
   const tickerContent = [...TICKER_ITEMS, ...TICKER_ITEMS].join('   ·   ')
 
-  // ── Image proxy — bypasses hotlink protection ─────────────────────────────
-  function px(url?: string) {
-    return url ? `/api/image?url=${encodeURIComponent(url)}` : undefined
-  }
-
   // ── Helpers ────────────────────────────────────────────────────────────────
   function SectionHeader({ kicker, title, variant }: { kicker: string; title: string; variant: string }) {
     return (
@@ -211,8 +207,7 @@ export default async function Home() {
       <Link href={`/story/${s.id}`} className="story-card-o">
         <div className="story-card-o-wrap">
           {s.imageUrl
-            // eslint-disable-next-line @next/next/no-img-element
-            ? <img className="story-card-o-img" src={px(s.imageUrl)} alt="" />
+            ? <Image fill src={s.imageUrl} alt="" style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 50vw, 30vw" />
             : <div className={`story-card-o-ph ${phClass}`} />
           }
           <div className="story-card-o-grad" />
@@ -232,7 +227,7 @@ export default async function Home() {
     return (
       <Link href={`/story/${s.id}`} className="story-card-h" style={{ textDecoration: 'none' }}>
         {s.imageUrl
-          ? <img className="story-card-h-img" src={px(s.imageUrl)} alt="" /> // eslint-disable-line @next/next/no-img-element
+          ? <div style={{ position: 'relative', flexShrink: 0, width: 110, height: 85 }}><Image fill src={s.imageUrl!} alt="" style={{ objectFit: 'cover' }} sizes="110px" /></div>
           : <div className={`story-card-h-placeholder ${placeholderClass ?? ''}`} />
         }
         <div className="story-card-h-body">
@@ -306,8 +301,7 @@ export default async function Home() {
         {splash && (
           <Link href={`/story/${splash.id}`} className="hero-v2">
             {splash.imageUrl
-              // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={px(splash.imageUrl)} alt="" className="hero-v2-img" />
+              ? <Image fill src={splash.imageUrl} alt="" style={{ objectFit: 'cover', transition: 'transform 0.5s ease' }} sizes="100vw" priority />
               : <div className="hero-v2-ph" />
             }
             <div className="hero-v2-grad" />

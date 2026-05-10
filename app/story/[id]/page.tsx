@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { stories } from '@/lib/store'
 import { notFound } from 'next/navigation'
 import { RushVoice } from '@/components/RushVoice'
@@ -176,13 +177,8 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
             {/* Hero image */}
             {story.imageUrl && (
-              <div style={{ marginBottom: '2rem' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`/api/image?url=${encodeURIComponent(story.imageUrl)}`}
-                  alt=""
-                  style={{ width: '100%', maxHeight: '420px', objectFit: 'cover', display: 'block' }}
-                />
+              <div style={{ position: 'relative', width: '100%', height: '420px', marginBottom: '2rem' }}>
+                <Image fill src={story.imageUrl} alt="" style={{ objectFit: 'cover' }} sizes="700px" priority />
               </div>
             )}
 
