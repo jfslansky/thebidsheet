@@ -7,7 +7,7 @@ export const maxDuration = 300
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 
 const GOOGLE_HOST_RE = /google|gstatic|googleapis|ggpht|googleusercontent/
-const SKIP_IMG = /favicon|\/icon|logo|avatar|pixel|tracking|badge|button|spinner|placeholder|\.svg/i
+const SKIP_IMG = /\.svg(\?|$)|\.gif(\?|$)|1x1|spacer|pixel\.gif|tracking\.gif/i
 
 function extractImageFromHtml(html: string, baseUrl: string): string | undefined {
   const meta = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
@@ -20,8 +20,15 @@ function extractImageFromHtml(html: string, baseUrl: string): string | undefined
       if (!GOOGLE_HOST_RE.test(new URL(u).hostname)) return u
     } catch { /* invalid */ }
   }
-  for (const m of html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)) {
-    const src = m[1]
+  for (const tag of html.matchAll(/<img\b[^>]+>/gi)) {
+    const t = tag[0]
+    const srcM = t.match(/\bsrc=["']([^"']+)["']/)
+      ?? t.match(/\bdata-src=["']([^"']+)["']/)
+      ?? t.match(/\bdata-lazy-src=["']([^"']+)["']/)
+      ?? t.match(/\bdata-original=["']([^"']+)["']/)
+      ?? t.match(/\bdata-lazy=["']([^"']+)["']/)
+    if (!srcM) continue
+    const src = srcM[1]
     if (!src.startsWith('http')) continue
     if (SKIP_IMG.test(src)) continue
     try { if (GOOGLE_HOST_RE.test(new URL(src).hostname)) continue } catch { continue }

@@ -100,10 +100,17 @@ function extractImageFromHtml(html: string, baseUrl: string, skipRe: RegExp): st
       if (!skipRe.test(new URL(u).hostname)) return u
     } catch { /* invalid */ }
   }
-  // 2. First <img src> in article body that looks like a real photo
-  const SKIP = /favicon|\/icon|logo|avatar|pixel|tracking|badge|button|spinner|placeholder|\.svg/i
-  for (const m of html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)) {
-    const src = m[1]
+  // 2. First real <img> — check src + lazy-load attrs (data-src, data-lazy-src, data-original)
+  const SKIP = /\.svg(\?|$)|\.gif(\?|$)|1x1|spacer|pixel\.gif|tracking\.gif/i
+  for (const tag of html.matchAll(/<img\b[^>]+>/gi)) {
+    const t = tag[0]
+    const srcM = t.match(/\bsrc=["']([^"']+)["']/)
+      ?? t.match(/\bdata-src=["']([^"']+)["']/)
+      ?? t.match(/\bdata-lazy-src=["']([^"']+)["']/)
+      ?? t.match(/\bdata-original=["']([^"']+)["']/)
+      ?? t.match(/\bdata-lazy=["']([^"']+)["']/)
+    if (!srcM) continue
+    const src = srcM[1]
     if (!src.startsWith('http')) continue
     if (SKIP.test(src)) continue
     try { if (skipRe.test(new URL(src).hostname)) continue } catch { continue }
