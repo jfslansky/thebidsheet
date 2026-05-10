@@ -57,7 +57,7 @@ async function runRepatchPass(limit: number): Promise<{ patched: number; remaini
         system: [{ type: 'text', text: RUSH_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }] as Parameters<typeof client.messages.create>[0]['system'],
         messages: [{
           role: 'user',
-          content: `Process these ${batch.length} headlines. Return ONLY a JSON array of ${batch.length} objects in the same order:\n[{"headline":"rewritten — 8–12 words, punchy, sorority clickbait energy, sentence case, no clickbait question marks","adequateVoice":"4–6 sentences, 85–115 words, first-person Elle Woods insider take — real context, specific details, what everyone in the chapter already knows but nobody writes, personality, sentence case"},…]\n\nHeadlines:\n${storiesList}`,
+          content: `Process these ${batch.length} headlines. Return ONLY a JSON array of ${batch.length} objects in the same order:\n[{"headline":"rewritten — 9–13 words, punchy, sorority clickbait energy, sentence case","adequateVoice":"2–3 sentences, 40–65 words, first-person Elle Woods insider take — real context, personality, sentence case"},…]\n\nHeadlines:\n${storiesList}`,
         }],
       })
 

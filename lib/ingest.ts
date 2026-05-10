@@ -56,8 +56,8 @@ function extractRSSImage(item: RSSItem): string | undefined {
     const url = mt?.$?.url ?? mt?.url
     if (url?.startsWith('http')) return url
   }
-  // enclosure (image type)
-  if (item.enclosure?.url?.startsWith('http') && item.enclosure.type?.startsWith('image')) {
+  // enclosure — check URL for image extension (type attr often missing)
+  if (item.enclosure?.url?.match(/\.(jpe?g|png|webp|gif)/i)) {
     return item.enclosure.url
   }
   // content:encoded / content — first <img src> in HTML body
@@ -375,10 +375,6 @@ export async function ingestFeeds(): Promise<number> {
   await learnFromEngagement(allStories)
   await mutateLore(allStories.length)
 
-  // One quick repatch pass for freshly ingested stories — full backfill via admin /api/repatch
-  try {
-    await runRepatch(20, false, 28_000)
-  } catch { /* non-fatal */ }
 
   return fresh.length
 }
