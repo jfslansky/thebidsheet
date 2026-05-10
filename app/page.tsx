@@ -124,14 +124,14 @@ export default async function Home() {
   const fashionPool = diverse
     .filter(isFashionStory)
     .sort((a, b) => (b.fashionScore ?? b.score ?? 0) - (a.fashionScore ?? a.score ?? 0))
-    .slice(0, 14)
+    .slice(0, 18)
 
   const rushPool = diverse
     .filter(isRushStory)
     .sort((a, b) => (b.rushScore ?? b.score ?? 0) - (a.rushScore ?? a.score ?? 0))
-    .slice(0, 14)
+    .slice(0, 18)
 
-  const teaPool = diverse.filter(isTeaStory).slice(0, 15)
+  const teaPool = diverse.filter(isTeaStory).slice(0, 18)
 
   // Campus: anything not already categorized — catches general Greek life content
   const categorized = new Set([
@@ -145,8 +145,15 @@ export default async function Home() {
 
   const localPool = diverse.filter(isLocalStory).filter(s => !categorized.has(s.id)).slice(0, 6)
 
-  // Coaching sidebar
-  const coachingPool = pool.filter(isCoachingStory).slice(0, 5)
+  // Coaching sidebar — one per source to prevent dupes
+  const coachingPool = (() => {
+    const seen = new Set<string>()
+    return pool.filter(isCoachingStory).filter(s => {
+      if (seen.has(s.source)) return false
+      seen.add(s.source)
+      return true
+    }).slice(0, 5)
+  })()
 
   // Accountability sidebar — hard cap 3
   const accountabilityPool = allStories
@@ -217,7 +224,7 @@ export default async function Home() {
           </div>
         </div>
         {s.adequateVoice && (
-          <div className="story-card-o-voice"><RushVoice text={s.adequateVoice} /></div>
+          <div className="story-card-o-voice"><RushVoice text={s.adequateVoice.split(/(?<=[.!?])\s+/)[0]} /></div>
         )}
       </Link>
     )
@@ -243,7 +250,6 @@ export default async function Home() {
     )
   }
 
-  const teaCols   = [teaPool.filter((_, i) => i % 3 === 0), teaPool.filter((_, i) => i % 3 === 1), teaPool.filter((_, i) => i % 3 === 2)]
   const localLeft = localPool.filter((_, i) => i % 2 === 0)
   const localRight = localPool.filter((_, i) => i % 2 === 1)
 
@@ -374,21 +380,26 @@ export default async function Home() {
                 </div>
               )}
 
-              {/* ── Chapter Tea — Light / Viral ──────────────────────────── */}
+              {/* ── Chapter Tea — Light / Viral (cards with pics) ────────── */}
               {teaPool.length > 0 && (
-                <div style={{ marginBottom: '2rem', borderTop: '1px solid var(--rule)', paddingTop: '1.5rem' }}>
+                <div style={{ marginBottom: '2.5rem' }}>
                   <SectionHeader kicker="Greek Life & Campus" title="Chapter Tea" variant="light" />
-                  <div className="cols-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 1.75rem' }}>
-                    <div style={{ borderRight: '1px solid var(--rule)', paddingRight: '1.75rem' }}>
-                      {teaCols[0].map(s => <StorySimple key={s.id} s={s} />)}
-                    </div>
-                    <div style={{ borderRight: '1px solid var(--rule)', paddingRight: '1.75rem' }}>
-                      {teaCols[1].map(s => <StorySimple key={s.id} s={s} />)}
-                    </div>
-                    <div>
-                      {teaCols[2].map(s => <StorySimple key={s.id} s={s} />)}
-                    </div>
+                  <div className="grid-3col">
+                    {teaPool.slice(0, 6).map(s => <StoryCardOverlay key={s.id} s={s} />)}
                   </div>
+                  {teaPool.length > 6 && (
+                    <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--rule)', paddingTop: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 1.75rem' }}>
+                      <div style={{ borderRight: '1px solid var(--rule)', paddingRight: '1.75rem' }}>
+                        {teaPool.slice(6).filter((_, i) => i % 3 === 0).map(s => <StorySimple key={s.id} s={s} />)}
+                      </div>
+                      <div style={{ borderRight: '1px solid var(--rule)', paddingRight: '1.75rem' }}>
+                        {teaPool.slice(6).filter((_, i) => i % 3 === 1).map(s => <StorySimple key={s.id} s={s} />)}
+                      </div>
+                      <div>
+                        {teaPool.slice(6).filter((_, i) => i % 3 === 2).map(s => <StorySimple key={s.id} s={s} />)}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

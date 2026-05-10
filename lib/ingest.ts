@@ -133,17 +133,34 @@ export async function ingestFeeds(): Promise<number> {
   const rescored = await stories.values()
 
   // Fix existing stories: decode Google redirect URLs, promote RSS images for unimaged stories
-  const googleHostRe = /google|gstatic|googleapis|ggpht/
   const googlebotUA = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
   await Promise.allSettled(
     rescored
       .filter(s => s.sourceUrl.includes('news.google.com') || (!s.imageUrl && s.rssImageUrl))
-      .slice(0, 30)
+      .slice(0, 40)
       .map(async s => {
         try {
           if (s.sourceUrl.includes('news.google.com')) {
             const decoded = decodeGoogleNewsUrl(s.sourceUrl)
-            if (decoded !== s.sourceUrl) s.sourceUrl = decoded
+            if (decoded !== s.sourceUrl) {
+              s.sourceUrl = decoded
+            } else {
+              // Protobuf decode failed — try HTTP redirect
+              const res = await fetch(s.sourceUrl, {
+                signal: AbortSignal.timeout(6000),
+                headers: { 'User-Agent': googlebotUA },
+                redirect: 'follow',
+              })
+              if (!res.url.includes('news.google.com')) {
+                s.sourceUrl = res.url
+                if (res.ok && !s.imageUrl) {
+                  const html = await res.text()
+                  const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+                    ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+                  if (m?.[1]) s.imageUrl = m[1].startsWith('http') ? m[1] : new URL(m[1], res.url).href
+                }
+              }
+            }
           }
           // Promote RSS image if no imageUrl yet
           if (!s.imageUrl && s.rssImageUrl) s.imageUrl = s.rssImageUrl

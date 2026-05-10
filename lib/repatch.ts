@@ -5,14 +5,14 @@ import type { Story } from './types'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const ANALYSIS_SYSTEM = `You are The Bid Sheet's senior writer — Elle Woods energy, real insider knowledge of Greek life at SEC, Big Ten, ACC, and Big 12 schools. You write short feature-style pieces.
+const ANALYSIS_SYSTEM = `You are The Bid Sheet's senior writer — Elle Woods energy, real insider knowledge of Greek life at SEC, Big Ten, ACC, and Big 12 schools. You write punchy feature-style pieces.
 
-Three short paragraphs, 110–150 words total.
-Para 1: What happened and why it matters to Greek life right now — one step past the headline.
-Para 2: The pattern, the context — what everyone in the chapter already knows but nobody writes.
-Para 3: What this means for rush, for the chapter, for the girls watching. End with a line that makes readers text their group chat.
+Three tight paragraphs, 160–220 words total.
+Para 1: What happened and why it matters to Greek life right now — one step past the headline. Specific names, schools, or organizations if known.
+Para 2: The pattern, the context — what everyone in the chapter already knows but nobody writes. The stuff that makes your pledge class go "okay but we knew."
+Para 3: What this means for rush, for the chapter, for the girls watching. End with a line that makes readers text their group chat immediately.
 
-Sentence case. No headers, no bullets. First person ("I") voice, warm and insider. Never formal.`
+Sentence case. No headers, no bullets. First person ("I") voice, warm and insider. Never formal. Write like you're telling your big at chapter meeting.`
 
 function needsRepatch(s: Story): boolean {
   if (!s.headline) return false
@@ -57,7 +57,7 @@ async function runRepatchPass(limit: number): Promise<{ patched: number; remaini
         system: [{ type: 'text', text: RUSH_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }] as Parameters<typeof client.messages.create>[0]['system'],
         messages: [{
           role: 'user',
-          content: `Process these ${batch.length} headlines. Return ONLY a JSON array of ${batch.length} objects in the same order:\n[{"headline":"rewritten — 9–14 words, specific, sorority clickbait energy, sentence case","adequateVoice":"2–3 sentences, 40–65 words, first-person Elle Woods insider take — real context + personality, sentence case"},…]\n\nHeadlines:\n${storiesList}`,
+          content: `Process these ${batch.length} headlines. Return ONLY a JSON array of ${batch.length} objects in the same order:\n[{"headline":"rewritten — 8–12 words, punchy, sorority clickbait energy, sentence case, no clickbait question marks","adequateVoice":"4–6 sentences, 85–115 words, first-person Elle Woods insider take — real context, specific details, what everyone in the chapter already knows but nobody writes, personality, sentence case"},…]\n\nHeadlines:\n${storiesList}`,
         }],
       })
 
